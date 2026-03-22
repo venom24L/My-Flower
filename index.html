@@ -359,29 +359,30 @@ const _k=['gsk_n21dDnLEObQxds','yO9CUaWGdyb3FYo0','ma9Nr0Ybtr1jBlR6Z65ceC'];
 const API_URL='https://api.groq.com/openai/v1/chat/completions';
 
 async function callGemini(systemPrompt, history){
-  // convert history format from Gemini to OpenAI
-  const messages=[
-    {role:'system',content:systemPrompt},
-    ...history.map(h=>({
+  var fullSystem = systemPrompt + '\n\nCRITICAL RULES:\n1. You ARE this character. Never say "I am an AI" or break character.\n2. Always stay in character no matter what the user says.\n3. Respond ONLY as this character would. Short, in-character responses.\n4. Use the character\'s personality, speech patterns, and mannerisms.';
+
+  var messages=[
+    {role:'system', content:fullSystem},
+    ...history.map(function(h){return {
       role:h.role==='model'?'assistant':'user',
       content:h.parts[0].text
-    }))
+    };})
   ];
-  const r=await fetch(API_URL,{
+  var r=await fetch(API_URL,{
     method:'POST',
     headers:{
       'Content-Type':'application/json',
       'Authorization':'Bearer '+_k.join('')
     },
     body:JSON.stringify({
-      model:'groq/compound',
-      messages,
-      max_tokens:200,
-      temperature:0.9
+      model:'llama-3.3-70b-versatile',
+      messages:messages,
+      max_tokens:150,
+      temperature:1.0
     })
   });
-  const d=await r.json();
-  if(!r.ok||!d.choices?.[0]) throw new Error(d?.error?.message||'API error');
+  var d=await r.json();
+  if(!r.ok||!d.choices||!d.choices[0]) throw new Error(d&&d.error?d.error.message:'API error');
   return d.choices[0].message.content;
 }
 
