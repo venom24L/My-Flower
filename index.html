@@ -354,19 +354,34 @@ body{font-family:'VT323',monospace;color:var(--white);cursor:none}
 /* ══════════════════════════════════
    GEMINI API
 ══════════════════════════════════ */
-const _k=['AIzaSyDyO57oD3','TRihW4FNeY8szI','1ndiWUzpj8c'];
-const API_URL=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${_k.join('')}`;
+const _k=['gsk_n21dDnLEObQxds','yO9CUaWGdyb3FYo0','ma9Nr0Ybtr1jBlR6Z65ceC'];
+const API_URL='https://api.groq.com/openai/v1/chat/completions';
 
 async function callGemini(systemPrompt, history){
-  const body={
-    system_instruction:{parts:[{text:systemPrompt}]},
-    contents:history,
-    generationConfig:{maxOutputTokens:180,temperature:0.9}
-  };
-  const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  // convert history format from Gemini to OpenAI
+  const messages=[
+    {role:'system',content:systemPrompt},
+    ...history.map(h=>({
+      role:h.role==='model'?'assistant':'user',
+      content:h.parts[0].text
+    }))
+  ];
+  const r=await fetch(API_URL,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+_k.join('')
+    },
+    body:JSON.stringify({
+      model:'llama3-8b-8192',
+      messages,
+      max_tokens:200,
+      temperature:0.9
+    })
+  });
   const d=await r.json();
-  if(!r.ok||!d.candidates?.[0]) throw new Error(d?.error?.message||'API error');
-  return d.candidates[0].content.parts[0].text;
+  if(!r.ok||!d.choices?.[0]) throw new Error(d?.error?.message||'API error');
+  return d.choices[0].message.content;
 }
 
 /* ══════════════════════════════════
