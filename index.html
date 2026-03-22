@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -534,7 +533,7 @@ const SHOP_ITEMS=[
 ══════════════════════════════════ */
 const cur=document.getElementById('cur');
 document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px'});
-function setCursorColor(c){cur.style.background=c;cur.style.boxShadow=`0 0 8px ${c}`}
+function setCursorColor(c){cur.style.background=c;cur.style.boxShadow='0 0 8px '+c}
 
 /* ══════════════════════════════════
    SCREEN MANAGEMENT
@@ -579,8 +578,11 @@ function buildCompScreen(){
     const d=document.createElement('div');
     d.className='comp-card';
     d.style.borderColor=c.color;
-    d.innerHTML=`<img src="${c.img}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/200/0a0010/ffffff?text=${c.name}'"><div class="comp-card-name" style="color:${c.color}">${c.name}</div><div class="comp-card-sub">${c.sub}</div>`;
-    d.onmouseover=()=>{d.style.boxShadow=`0 0 18px ${c.color}`;d.style.borderColor=c.color};
+    var img2=document.createElement('img');img2.src=c.img;img2.alt=c.name;img2.onerror=function(){this.src='https://via.placeholder.com/200/0a0010/ffffff?text='+c.name};
+    var nm2=document.createElement('div');nm2.className='comp-card-name';nm2.style.color=c.color;nm2.textContent=c.name;
+    var sb2=document.createElement('div');sb2.className='comp-card-sub';sb2.textContent=c.sub;
+    d.appendChild(img2);d.appendChild(nm2);d.appendChild(sb2);
+    d.onmouseover=()=>{d.style.boxShadow='0 0 18px '+c.color;d.style.borderColor=c.color};
     d.onmouseout=()=>{d.style.boxShadow='';};
     d.onclick=()=>selectCompanion(id);
     grid.appendChild(d);
@@ -597,7 +599,7 @@ function selectCompanion(id){
     document.getElementById('companion-widget').style.display='flex';
     updateCompSprite();
     updateAllUI();
-    setTimeout(()=>compSay(`${S.name}! You chose me. Good instincts. Let's purge these curses together.`),1200);
+    setTimeout(()=>compSay(''+S.name+'! You chose me. Good instincts. Let us purge these curses together.'),1200);
     // idle timer
     startIdleTimer();
   },500);
@@ -612,7 +614,7 @@ function applyCompTheme(){
   document.documentElement.style.setProperty('--acc',c.color);
   document.documentElement.style.setProperty('--acc2',c.color+'22');
   cur.style.background=c.color;
-  cur.style.boxShadow=`0 0 8px ${c.color}`;
+  cur.style.boxShadow='0 0 8px '+c.color;
 }
 
 /* ══════════════════════════════════
@@ -631,15 +633,20 @@ function buildHub(){
     // check task completion
     const tasksDone=ch.tasks.filter(t=>S.tasks[t.id]).length;
 
-    node.innerHTML=`
-      <div class="ch-num">CHAPTER ${ch.num} ${done?'✓':''}</div>
-      <div class="ch-title" style="color:${active?'var(--acc)':'var(--white)'}">${ch.title}</div>
-      <div class="ch-desc">${ch.desc}</div>
-      <div class="ch-tasks">
-        ${ch.tasks.map(t=>`<div class="ch-task-badge" style="color:${S.tasks[t.id]?'var(--acc)':'var(--dim)'};border-color:${S.tasks[t.id]?'var(--acc)':'var(--dim)'}">${t.label} ${S.tasks[t.id]?'✓':''}</div>`).join('')}
-      </div>
-      <div style="font-family:'Press Start 2P';font-size:.5rem;color:var(--gold);margin-top:10px">${tasksDone}/3 TASKS • ${ch.energy} CE REWARD</div>
-    `;
+    var chNum=document.createElement('div');chNum.className='ch-num';chNum.textContent='CHAPTER '+ch.num+(done?' ✓':'');
+    var chTit=document.createElement('div');chTit.className='ch-title';chTit.style.color=active?'var(--acc)':'var(--white)';chTit.textContent=ch.title;
+    var chDesc=document.createElement('div');chDesc.className='ch-desc';chDesc.textContent=ch.desc;
+    var chTasks=document.createElement('div');chTasks.className='ch-tasks';
+    ch.tasks.forEach(function(t){
+      var tb=document.createElement('div');tb.className='ch-task-badge';
+      tb.style.color=S.tasks[t.id]?'var(--acc)':'var(--dim)';
+      tb.style.borderColor=S.tasks[t.id]?'var(--acc)':'var(--dim)';
+      tb.textContent=t.label+(S.tasks[t.id]?' ✓':'');
+      chTasks.appendChild(tb);
+    });
+    var chInfo=document.createElement('div');chInfo.style.cssText="font-family:'Press Start 2P';font-size:.5rem;color:var(--gold);margin-top:10px";
+    chInfo.textContent=tasksDone+'/3 TASKS • '+ch.energy+' CE REWARD';
+    node.appendChild(chNum);node.appendChild(chTit);node.appendChild(chDesc);node.appendChild(chTasks);node.appendChild(chInfo);
     if(unlocked&&!done){
       node.onclick=()=>openChapter(i);
       node.style.cursor='pointer';
@@ -658,7 +665,7 @@ function openChapter(i){
     return;
   }
   const next=incomplete[0];
-  compSay(`${S.name}, it's time. ${ch.story}`);
+  compSay(''+S.name+", it's time. "+ch.story);
   setTimeout(()=>startTask(next,i),1400);
 }
 
@@ -698,7 +705,7 @@ function buildChatUI(task,chIdx){
   document.getElementById('chat-in').onkeydown=e=>{if(e.key==='Enter')sendChatMsg()};
 
   const c=CHARS[S.comp];
-  addChatMsg('char',c.name,`${S.name}... I've been waiting to talk. What's on your mind?`);
+  addChatMsg('char',c.name,''+S.name+"... I've been waiting to talk. What's on your mind?");
   checkAch('first_msg');
 }
 
@@ -706,11 +713,11 @@ function addChatMsg(role,name,text){
   const box=document.getElementById('chat-msgs');
   if(!box) return;
   const d=document.createElement('div');
-  d.className=`msg ${role}`;
+  d.className='msg '+role;
   if(role!=='system'){
     const n=document.createElement('div');
     n.className='msg-name';
-    n.textContent=role==='char'?`< ${name} >`:'[ YOU ]';
+    n.textContent=role==='char'?'< '+name+' >':'[ YOU ]';
     d.appendChild(n);
   }
   const t=document.createElement('div');
@@ -751,7 +758,7 @@ async function sendChatMsg(){
     // update progress
     const need=MAX_CHAT_FOR_TASK[chatTaskRef?.id]||5;
     const prog=document.getElementById('chat-progress');
-    if(prog) prog.textContent=`PROGRESS: ${Math.min(chatMsgCount,need)}/${need}`;
+    if(prog) prog.textContent='PROGRESS: '+Math.min(chatMsgCount,need)+'/'+need;
 
     if(chatMsgCount>=need&&chatTaskRef&&!S.tasks[chatTaskRef.id]){
       S.tasks[chatTaskRef.id]=true; save();
@@ -783,14 +790,18 @@ function buildTrainUI(task,chIdx){
   const area=document.createElement('div');
   area.id='training-area';
   area.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:clamp(14px,4vw,28px)';
-  area.innerHTML=`
-    <div style="font-size:clamp(.85rem,3vw,1.1rem);color:var(--dim);text-align:center">⚡ ${c.name} PRESENTS A CHALLENGE ⚡</div>
-    <div id="training-question" style="font-family:'Press Start 2P';font-size:clamp(.55rem,2.2vw,.85rem);color:var(--acc);text-align:center;line-height:1.8;max-width:600px">${q.q}</div>
-    <div id="training-opts" style="display:flex;flex-direction:column;gap:10px;width:clamp(240px,70vw,500px)">
-      ${q.opts.map((o,i)=>`<button class="train-opt" onclick="checkAnswer(${i},${q.ans},this)">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
-    </div>
-    <div id="train-result" style="font-family:'Press Start 2P';font-size:.65rem;text-align:center;min-height:30px"></div>
-  `;
+  var trSub=document.createElement('div');trSub.style.cssText='font-size:clamp(.85rem,3vw,1.1rem);color:var(--dim);text-align:center';trSub.textContent='⚡ '+c.name+' PRESENTS A CHALLENGE ⚡';
+  var trQ=document.createElement('div');trQ.id='training-question';trQ.style.cssText="font-family:'Press Start 2P';font-size:clamp(.55rem,2.2vw,.85rem);color:var(--acc);text-align:center;line-height:1.8;max-width:600px";trQ.textContent=q.q;
+  var trOpts=document.createElement('div');trOpts.id='training-opts';trOpts.style.cssText='display:flex;flex-direction:column;gap:10px;width:clamp(240px,70vw,500px)';
+  q.opts.forEach(function(o,i){
+    var btn2=document.createElement('button');btn2.className='train-opt';
+    btn2.textContent=String.fromCharCode(65+i)+'. '+o;
+    var ii=i,aa=q.ans;
+    btn2.onclick=function(){checkAnswer(ii,aa,this)};
+    trOpts.appendChild(btn2);
+  });
+  var trRes=document.createElement('div');trRes.id='train-result';trRes.style.cssText="font-family:'Press Start 2P';font-size:.65rem;text-align:center;min-height:30px";
+  area.appendChild(trSub);area.appendChild(trQ);area.appendChild(trOpts);area.appendChild(trRes);
   body.appendChild(area);
 }
 
@@ -856,7 +867,7 @@ function buildScoutUI(task,chIdx){
     // shard (pulsing)
     if(!found){
       const pulse=(Math.sin(Date.now()*.005)+1)*.5;
-      ctx.fillStyle=`rgba(255,215,0,${.3+pulse*.7})`;
+      ctx.fillStyle='rgba(255,215,0,'+(0.3+pulse*0.7)+')';
       ctx.fillRect(sx,sy,16,16);
       ctx.strokeStyle='#ffd700';ctx.lineWidth=2;
       ctx.strokeRect(sx,sy,16,16);
@@ -886,7 +897,7 @@ function buildScoutUI(task,chIdx){
   };
   canvas.ontouchstart=e=>{e.preventDefault();canvas.onclick({clientX:e.touches[0].clientX,clientY:e.touches[0].clientY})};
 
-  compSay(`${S.name}, the shard is hidden somewhere in this area. Tap where you sense cursed energy.`);
+  compSay(''+S.name+', the shard is hidden somewhere in this area. Tap where you sense cursed energy.');
 }
 
 /* ══════════════════════════════════
@@ -904,7 +915,7 @@ function startBoss(task,chIdx){
   document.getElementById('mg-title-px').style.color=c.color;
   showScreen('s-minigame');
 
-  compSay(`${S.name}! Fight with everything you have!`);
+  compSay(''+S.name+'! Fight with everything you have!');
 
   mgWinCb=()=>{
     wins++;
@@ -1003,7 +1014,7 @@ function runSlash(canvas,W,H,col){
     gt++;ctx.fillStyle='#111';ctx.fillRect(0,0,W,5);ctx.fillStyle=col;ctx.fillRect(0,0,(gt/WIN)*W,5);
     if(gt-lh>260){lh=gt;compSay(hints[Math.floor(Math.random()*hints.length)]);}
     et++;if(et>55){spawn();et=0}
-    targets=targets.filter(t=>{t.life--;const p=t.life/t.max;ctx.strokeStyle=col;ctx.lineWidth=3;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.stroke();ctx.fillStyle=col+'22';ctx.fill();ctx.strokeStyle='#ff2020';ctx.lineWidth=4;ctx.beginPath();ctx.arc(t.x,t.y,t.r+4,-Math.PI/2,-Math.PI/2+(1-p)*Math.PI*2);ctx.stroke();ctx.fillStyle='#fff';ctx.font=`${t.r}px VT323`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('X',t.x,t.y);if(t.life<=0){lives--;document.getElementById('mg-lives-px').textContent='♥'.repeat(Math.max(0,lives));if(lives<=0){mgActive=false;doJumpscare();return false}return false}return true});
+    targets=targets.filter(t=>{t.life--;const p=t.life/t.max;ctx.strokeStyle=col;ctx.lineWidth=3;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.stroke();ctx.fillStyle=col+'22';ctx.fill();ctx.strokeStyle='#ff2020';ctx.lineWidth=4;ctx.beginPath();ctx.arc(t.x,t.y,t.r+4,-Math.PI/2,-Math.PI/2+(1-p)*Math.PI*2);ctx.stroke();ctx.fillStyle='#fff';ctx.font=t.r+'px VT323';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('X',t.x,t.y);if(t.life<=0){lives--;document.getElementById('mg-lives-px').textContent='♥'.repeat(Math.max(0,lives));if(lives<=0){mgActive=false;doJumpscare();return false}return false}return true});
     if(gt>=WIN){mgActive=false;mgWinCb?.();return}
     if(mgActive)requestAnimationFrame(loop);
   }
@@ -1031,7 +1042,7 @@ function checkChapterComplete(chIdx){
     if(chIdx===2) showSecretUnlock();
     else{
       showToast('CHAPTER '+(chIdx+1)+' COMPLETE! NEW CHAPTER UNLOCKED!');
-      compSay(`${S.name}... we did it. The curtain is lifting.`);
+      compSay(''+S.name+'... we did it. The curtain is lifting.');
     }
   }
 }
@@ -1047,7 +1058,7 @@ function completedTask(name,reward,chIdx){
 
 function showMissionPop(name,reward){
   const p=document.getElementById('mission-pop');
-  p.innerHTML=`<div class="mission-box"><div class="mission-h">✦ MISSION ACCOMPLISHED ✦</div><div class="mission-s">[ ${name} ]</div><div class="mission-e">+${reward} CURSED ENERGY</div></div>`;
+  p.innerHTML='<div class="mission-box"><div class="mission-h">✦ MISSION ACCOMPLISHED ✦</div><div class="mission-s">[ '+name+' ]</div><div class="mission-e">+'+reward+' CURSED ENERGY</div></div>';
   p.classList.add('show');
   setTimeout(()=>p.classList.remove('show'),2500);
 }
@@ -1169,7 +1180,7 @@ function showAch(){
     const on=S.ach[a.id];
     const d=document.createElement('div');
     d.className='ach-item '+(on?'on':'off');
-    d.innerHTML=`<div class="ach-ico">${a.icon}</div><div class="ach-inf"><div class="ach-nm">${a.name}</div><div class="ach-ds">${a.desc}</div></div>${on?'<span style="color:var(--gold);font-family:Press Start 2P;font-size:.4rem">✓</span>':''}`;
+    d.innerHTML='<div class="ach-ico">'+a.icon+'</div><div class="ach-inf"><div class="ach-nm">'+a.name+'</div><div class="ach-ds">'+a.desc+'</div></div>'+(on?'<span style="color:var(--gold);font-family:Press Start 2P;font-size:.4rem">✓</span>':'');
     list.appendChild(d);
   });
   p.classList.add('show');
@@ -1186,7 +1197,7 @@ function openShop(){
     const bought=S.bought.includes(it.id);
     const d=document.createElement('div');
     d.className='shop-item '+(bought?'bought':'');
-    d.innerHTML=`<div><div class="shop-nm">${it.name}</div><div class="shop-ds">${it.desc}</div></div><div class="shop-price">${bought?'OWNED':it.price+' CE'}</div>`;
+    d.innerHTML='<div><div class="shop-nm">'+it.name+'</div><div class="shop-ds">'+it.desc+'</div></div><div class="shop-price">'+(bought?'OWNED':it.price+' CE')+'</div>';
     if(!bought) d.onclick=()=>buyItem(it);
     list.appendChild(d);
   });
@@ -1234,18 +1245,30 @@ function showToast(msg){
 }
 
 function confirmRestart(){
-  const ok=window.confirm('RESTART FROM THE BEGINNING?\nAll progress will be lost.');
-  if(!ok) return;
-  ['tls_name','tls_gender','tls_comp','tls_energy','tls_aff','tls_ch','tls_tasks','tls_ach','tls_bought'].forEach(k=>localStorage.removeItem(k));
+  ['tls_name','tls_gender','tls_comp','tls_energy','tls_aff','tls_ch','tls_tasks','tls_ach','tls_bought'].forEach(function(k){localStorage.removeItem(k);});
   location.reload();
 }
-  const c=document.createElement('canvas');
+
+function startNoise(){
+  var c=document.createElement('canvas');
   c.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:8998;opacity:.025';
   c.width=200;c.height=200;document.body.appendChild(c);
-  const cx=c.getContext('2d');
-  function gen(){const d=cx.createImageData(200,200);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255|0;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}cx.putImageData(d,0,0);requestAnimationFrame(gen)}
+  var cx=c.getContext('2d');
+  function gen(){var d=cx.createImageData(200,200);for(var i=0;i<d.data.length;i+=4){var v=Math.random()*255|0;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}cx.putImageData(d,0,0);requestAnimationFrame(gen);}
   gen();
 }
+
+window.setGender=setGender;
+window.selectCompanion=selectCompanion;
+window.showHub=showHub;
+window.openChat=openChat;
+window.openShop=openShop;
+window.showAch=showAch;
+window.confirmRestart=confirmRestart;
+window.closeOverlays=closeOverlays;
+window.backToHub=backToHub;
+window.toggleCompDialog=toggleCompDialog;
+window.checkAnswer=checkAnswer;
 
 /* ══════════════════════════════════
    LOAD / INIT
@@ -1258,7 +1281,7 @@ window.addEventListener('load',()=>{
     document.getElementById('botnav').classList.add('show');
     document.getElementById('companion-widget').style.display='flex';
     updateCompSprite();updateAllUI();
-    setTimeout(()=>compSay(`Welcome back, ${S.name}. I've been waiting.`),800);
+    setTimeout(()=>compSay('Welcome back, '+S.name+'. I\'ve been waiting.'),800);
     startIdleTimer();
   } else if(S.name&&S.gender){
     document.getElementById('name-input').value=S.name;
