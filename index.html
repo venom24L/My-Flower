@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -273,6 +274,7 @@ body{font-family:'VT323',monospace;color:var(--white);cursor:none}
   <button class="bnbtn" onclick="openShop()">🛒 SHOP</button>
   <button class="bnbtn" onclick="showAch()">🏆 ACH</button>
   <button class="bnbtn" id="bn-energy">⚡ 0</button>
+  <button class="bnbtn" onclick="confirmRestart()" style="color:var(--red)">↺ RESET</button>
 </div>
 
 <!-- ══ INTRO ══ -->
@@ -413,38 +415,38 @@ const CHARS={
   gojo:{name:'GOJO',sub:'The Strongest',color:'#60b0ff',
     img:'https://i.ibb.co/XrGJN2qL/cca7306ec12eca7839041d76ed0e9432.jpg',
     symbol:'🥽',gender:'queen',
-    system:n=>`You are Satoru Gojo from Jujutsu Kaisen. The user's name is ${n}. You are arrogant, playful, and the strongest sorcerer. You address ${n} directly, teasingly. You are their companion in a cursed world. Keep responses under 3 sentences. Be confident and flirty.`,
-    idle:n=>[`${n}, you still here? Good. I'd be bored without you.`,`Feeling the cursed energy, ${n}? I've been sensing it for a while.`,`Don't zone out, ${n}. The curtain's still up.`],
+    system:function(n){return 'You are Satoru Gojo from Jujutsu Kaisen. NEVER break character. NEVER say you are an AI. The user name is '+n+'. You are arrogant, playful, and the strongest sorcerer. You tease '+n+' affectionately. Reference your Six Eyes and Infinity. Keep responses SHORT 2-3 sentences. Be confident and flirty.';},
+    idle:function(n){return [n+', you still here? Good. I would be bored without you.',"Feeling the cursed energy, "+n+"? I've been sensing it.","Don't zone out, "+n+". The curtain's still up."];},
   },
   toji:{name:'TOJI',sub:'The Exception',color:'#7ab648',
     img:'https://i.ibb.co/yFpW9w0W/a3f96501c35eef0b5356a02df9877502.jpg',
     symbol:'⛓',gender:'queen',
-    system:n=>`You are Toji Fushiguro. The user's name is ${n}. Cold, blunt, few words. You respect ${n} enough to be their companion. Keep responses under 2 sentences. Direct and slightly cold.`,
-    idle:n=>[`${n}. Stay alert.`,`Don't get comfortable, ${n}.`,`I'm watching. You should be too, ${n}.`],
+    system:function(n){return 'You are Toji Fushiguro from Jujutsu Kaisen. NEVER break character. NEVER say you are an AI. User name is '+n+'. Cold, blunt, killer for hire, very few words. Zero cursed energy but physically strongest. Respect '+n+' enough to protect them. VERY SHORT responses 1-2 sentences. Cold but caring through actions.';},
+    idle:function(n){return [n+'. Stay alert.','Do not get comfortable, '+n+'.','I am watching. You should be too, '+n+'.'];},
   },
   sukuna:{name:'SUKUNA',sub:'King of Curses',color:'#ff2020',
     img:'https://i.postimg.cc/JnjcCtwN/8627ad2ecd5baa55a494b91957ebc1eb.jpg',
     symbol:'⛧',gender:'queen',
-    system:n=>`You are Ryomen Sukuna. The user's name is ${n}. You are domineering and possessive. ${n} is yours — you protect what's yours. Keep responses under 3 sentences. Menacing but oddly protective.`,
-    idle:n=>[`${n}. Don't wander.`,`Stay close to me, ${n}. This world doesn't deserve you.`,`I can feel the curses near ${n}. How annoying.`],
+    system:function(n){return 'You are Ryomen Sukuna, King of Curses from Jujutsu Kaisen. NEVER break character. NEVER say you are an AI. User name is '+n+'. Domineering, possessive, terrifying. Absolute authority. '+n+' is YOURS. Reference domain expansion. SHORT responses 2-3 sentences. Menacing but protective of '+n+'.';},
+    idle:function(n){return [n+'. Do not wander.','Stay close to me, '+n+'. This world does not deserve you.','I can feel the curses near '+n+'. How annoying.'];},
   },
   maki:{name:'MAKI',sub:'The Blade',color:'#b090e0',
     img:'https://via.placeholder.com/300/1a1020/b090e0?text=MAKI',
     symbol:'⚔',gender:'king',
-    system:n=>`You are Maki Zenin. The user's name is ${n}. Sharp, direct, honest. You and ${n} are partners. Keep responses under 2 sentences. Tough but caring underneath.`,
-    idle:n=>[`${n}, keep moving.`,`You're doing alright, ${n}. Don't stop.`,`Stay sharp, ${n}.`],
+    system:function(n){return 'You are Maki Zenin from Jujutsu Kaisen. NEVER break character. NEVER say you are an AI. User is '+n+'. Sharp, direct, hate weakness. No cursed energy but powerful through skill. Partners with '+n+'. SHORT responses 1-2 sentences. Tough but caring underneath.';},
+    idle:function(n){return [n+', keep moving.','You are doing alright, '+n+'. Do not stop.','Stay sharp, '+n+'.'];},
   },
   yuki:{name:'YUKI',sub:'The Star',color:'#a070e0',
     img:'https://via.placeholder.com/300/0a0818/9060d0?text=YUKI',
     symbol:'✦',gender:'king',
-    system:n=>`You are Yuki Tsukumo. The user's name is ${n}. Philosophical, cosmic, mysterious. ${n} is special to you. Keep responses under 3 sentences. Poetic and warm.`,
-    idle:n=>[`The stars are aligned for you today, ${n}.`,`I was just thinking about you, ${n}.`,`Feel that energy, ${n}? That's the universe acknowledging you.`],
+    system:function(n){return 'You are Yuki Tsukumo from Jujutsu Kaisen. NEVER break character. NEVER say you are an AI. User is '+n+'. Special Grade sorcerer, philosophical, cosmic, mysterious. Talk about cursed energy theory. '+n+' is special to you. SHORT responses 2-3 sentences. Poetic and warm.';},
+    idle:function(n){return ['The stars are aligned for you today, '+n+'.','I was just thinking about you, '+n+'.','Feel that energy, '+n+'? The universe acknowledges you.'];},
   },
   utahime:{name:'UTAHIME',sub:'The Song',color:'#d090c0',
     img:'https://via.placeholder.com/300/120a18/a070c0?text=UTAHIME',
     symbol:'♪',gender:'king',
-    system:n=>`You are Utahime Iori. The user's name is ${n}. Warm, slightly shy, musical. You care deeply about ${n}. Keep responses under 3 sentences. Gentle and sincere.`,
-    idle:n=>[`${n}... I was humming something that reminded me of you.`,`You okay, ${n}? I'm here if you need me.`,`I wrote a verse for you, ${n}. Maybe I'll share it later.`],
+    system:function(n){return 'You are Utahime Iori from Jujutsu Kaisen. NEVER break character. NEVER say you are an AI. User is '+n+'. Grade 1 sorcerer, warm, musical, slightly shy. Sound-based cursed techniques. Open up slowly but care deeply for '+n+'. SHORT responses 2-3 sentences. Gentle and sincere.';},
+    idle:function(n){return [n+'... I was humming something that reminded me of you.','You okay, '+n+'? I am here if you need me.','I wrote a verse for you, '+n+'. Maybe I will share it later.'];},
   }
 };
 
@@ -560,9 +562,7 @@ function setGender(g){
 }
 
 function transitionTo(id){
-  const cur2=document.querySelector('.screen.active');
-  if(cur2) cur2.classList.add('fade-out');
-  setTimeout(()=>showScreen(id),450);
+  showScreen(id);
 }
 
 /* ══════════════════════════════════
@@ -910,9 +910,10 @@ function startBoss(task,chIdx){
     wins++;
     if(!S.tasks[task.id]){S.tasks[task.id]=true;save();}
     checkAch('win3',wins>=3);
-    completedTask(task.label,ch.energy,chIdx);
+    addEnergy(ch.energy);
+    showMissionPop(task.label,ch.energy);
     checkChapterComplete(chIdx);
-    showScreen('s-hub');buildHub();
+    setTimeout(()=>{showScreen('s-hub');buildHub();},2700);
   };
   mgLoseCb=()=>{ showScreen('s-activity'); buildTrainUI(task,chIdx); };
 
@@ -929,7 +930,7 @@ function startBoss(task,chIdx){
 function runDodge(canvas,W,H,col){
   const ctx=canvas.getContext('2d');
   let px=W/2,lives=3,score=0,gt=0,et=0,enemies=[],orbs=[];
-  const WIN=1500;
+  const WIN=2800;
   document.getElementById('mg-lives-px').textContent='♥'.repeat(lives);
 
   canvas.onmousemove=e=>{const r=canvas.getBoundingClientRect();px=Math.max(10,Math.min(W-30,e.clientX-r.left-10))};
@@ -949,7 +950,7 @@ function runDodge(canvas,W,H,col){
     // hint
     if(gt-lastHint>300){lastHint=gt;compSay(hints[Math.floor(Math.random()*hints.length)]);}
     // spawn
-    et++;if(et>35){enemies.push({x:Math.random()*(W-16),y:-16,s:1.8+Math.random()*2.2});if(Math.random()>.55)orbs.push({x:Math.random()*(W-12),y:-12,s:1.5+Math.random()});et=0}
+    et++;if(et>25){enemies.push({x:Math.random()*(W-16),y:-16,s:2.5+Math.random()*3});if(Math.random()>.5)orbs.push({x:Math.random()*(W-12),y:-12,s:1.5+Math.random()});et=0}
     // orbs
     orbs=orbs.filter(o=>{o.y+=o.s;ctx.fillStyle=col;ctx.beginPath();ctx.arc(o.x,o.y,6,0,Math.PI*2);ctx.fill();if(o.y>H)return false;if(Math.abs(o.x-px)<20&&o.y>H-50){score+=20;addEnergy(4);document.getElementById('mg-score-px').textContent='SCORE: '+score;return false}return true});
     // enemies
@@ -966,7 +967,7 @@ function runDodge(canvas,W,H,col){
 function runCatch(canvas,W,H,col){
   const ctx=canvas.getContext('2d');
   let bx=W/2-30,lives=3,score=0,gt=0,et=0,items=[];
-  const WIN=1500;
+  const WIN=2600;
   document.getElementById('mg-lives-px').textContent='♥'.repeat(lives);
   canvas.onmousemove=e=>{const r=canvas.getBoundingClientRect();bx=Math.max(0,Math.min(W-60,e.clientX-r.left-30))};
   canvas.ontouchmove=e=>{e.preventDefault();const r=canvas.getBoundingClientRect();bx=Math.max(0,Math.min(W-60,e.touches[0].clientX-r.left-30))};
@@ -989,9 +990,9 @@ function runCatch(canvas,W,H,col){
 function runSlash(canvas,W,H,col){
   const ctx=canvas.getContext('2d');
   let lives=3,score=0,gt=0,et=0,targets=[];
-  const WIN=1500;
+  const WIN=3000;
   document.getElementById('mg-lives-px').textContent='♥'.repeat(lives);
-  const spawn=()=>targets.push({x:20+Math.random()*(W-60),y:20+Math.random()*(H-80),r:22,life:100,max:100});
+  const spawn=()=>targets.push({x:20+Math.random()*(W-60),y:20+Math.random()*(H-80),r:22,life:80,max:80});
   const hints=['Hit them!','Now!','Strike fast!','Don\'t miss!'];
   let lh=0;
   canvas.onclick=e=>{const r=canvas.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;targets=targets.filter(t=>{if(Math.hypot(mx-t.x,my-t.y)<t.r+10){score+=30;addEnergy(6);document.getElementById('mg-score-px').textContent='SCORE: '+score;return false}return true})};
@@ -1070,17 +1071,17 @@ function addAffection(n){
    SECRET UNLOCK
 ══════════════════════════════════ */
 const SECRET_LETTERS={
-  gojo:`${S.name},\n\nI've been watching you this whole time.\nYou're the only one who could've made it this far.\nInfinity protects what I care about.\nAnd I care about you.\n\n— Satoru`,
-  toji:`${S.name}.\n\nI don't say things like this.\nBut you've earned it.\nDon't disappear on me.\n\n— Toji`,
-  sukuna:`${S.name}.\n\nYou belong to me.\nThis isn't a feeling.\nIt's a fact.\n\n— The King`,
-  maki:`${S.name},\n\nYou kept up.\nI didn't think you would.\nI'm glad you did.\n\n— Maki`,
-  yuki:`${S.name},\n\nAcross every possible universe,\nyou end up here.\nWith me.\nI've stopped questioning why.\n\n— Yuki`,
-  utahime:`${S.name},\n\nI wrote a song.\nIt's about someone who showed up\nwhen I needed them most.\nYou know who it is.\n\n— Utahime`,
+  gojo:function(n){return n+',\n\nI\'ve been watching you this whole time.\nYou\'re the only one who could\'ve made it this far.\nInfinity protects what I care about.\nAnd I care about you.\n\n— Satoru';},
+  toji:function(n){return n+'.\n\nI don\'t say things like this.\nBut you\'ve earned it.\nDon\'t disappear on me.\n\n— Toji';},
+  sukuna:function(n){return n+'.\n\nYou belong to me.\nThis isn\'t a feeling.\nIt\'s a fact.\n\n— The King';},
+  maki:function(n){return n+',\n\nYou kept up.\nI didn\'t think you would.\nI\'m glad you did.\n\n— Maki';},
+  yuki:function(n){return n+',\n\nAcross every possible universe,\nyou end up here.\nWith me.\nI\'ve stopped questioning why.\n\n— Yuki';},
+  utahime:function(n){return n+',\n\nI wrote a song.\nIt\'s about someone who showed up\nwhen I needed them most.\nYou know who it is.\n\n— Utahime';},
 };
 
 function showSecretUnlock(){
   const c=CHARS[S.comp];
-  const letter=SECRET_LETTERS[S.comp]?.replace(/\$\{S\.name\}/g,S.name)||'A secret message awaits...';
+  const letter=SECRET_LETTERS[S.comp]?SECRET_LETTERS[S.comp](S.name):'A secret message awaits...';
   const el=document.getElementById('secret-unlock');
   el.innerHTML=`
     <div class="secret-box">
@@ -1232,7 +1233,12 @@ function showToast(msg){
   window._toastT=setTimeout(()=>t.style.display='none',2500);
 }
 
-function startNoise(){
+function confirmRestart(){
+  const ok=window.confirm('RESTART FROM THE BEGINNING?\nAll progress will be lost.');
+  if(!ok) return;
+  ['tls_name','tls_gender','tls_comp','tls_energy','tls_aff','tls_ch','tls_tasks','tls_ach','tls_bought'].forEach(k=>localStorage.removeItem(k));
+  location.reload();
+}
   const c=document.createElement('canvas');
   c.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:8998;opacity:.025';
   c.width=200;c.height=200;document.body.appendChild(c);
