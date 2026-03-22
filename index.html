@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⛧ Tokyo Lost Shadows ⛧</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#04020a;--panel:#0a0614;
+  --acc:#00ff41;--acc2:#004d18;
+  --red:#ff2020;--gold:#ffd700;
+  --pink:#ff6eb4;--blue:#60b0ff;--purple:#b060ff;
+  --white:#e8e0ff;--dim:#3a3055;
+  --crt:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px);
+}
+*{box-sizing:border-box;margin:0;padding:0;image-rendering:pixelated}
+html,body{height:100%;width:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'VT323',monospace;color:var(--white);cursor:none}
+
+/* CURSOR */
+#cur{position:fixed;width:10px;height:10px;background:var(--acc);pointer-events:none;z-index:99999;transform:translate(-50%,-50%);box-shadow:0 0 6px var(--acc);transition:background .3s,box-shadow .3s}
+
+/* CRT */
+#crt{position:fixed;inset:0;background:var(--crt);pointer-events:none;z-index:9000;opacity:.35}
+#scanline{position:fixed;top:-40%;left:0;width:100%;height:40%;background:linear-gradient(transparent,rgba(255,255,255,.025),transparent);animation:scan 10s linear infinite;pointer-events:none;z-index:9001}
+@keyframes scan{0%{top:-40%}100%{top:100%}}
+
+/* SCREENS */
+.screen{position:fixed;inset:0;display:none;z-index:100}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* FADE */
+.fade-in{animation:fadeIn .6s ease forwards}
+.fade-out{animation:fadeOut .5s ease forwards}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+
+/* ═══════════ INTRO SCREEN ═══════════ */
+#s-intro{background:var(--bg);padding:20px;gap:clamp(14px,4vw,28px)}
+.intro-logo{
+  font-family:'Press Start 2P';
+  font-size:clamp(.9rem,4vw,1.6rem);
+  color:var(--acc);text-align:center;line-height:2;
+  text-shadow:0 0 20px var(--acc),0 0 40px var(--acc);
+  animation:flicker 4s ease-in-out infinite;
+}
+@keyframes flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.3}94%{opacity:1}97%{opacity:.6}98%{opacity:1}}
+.intro-sub{font-size:clamp(1rem,3.5vw,1.3rem);color:var(--dim);text-align:center;letter-spacing:2px}
+.px-input{
+  background:rgba(0,255,65,.06);border:2px solid var(--dim);
+  color:var(--white);padding:clamp(10px,3vw,16px) clamp(14px,4vw,22px);
+  font-family:'VT323';font-size:clamp(1.1rem,4vw,1.5rem);
+  outline:none;width:clamp(240px,70vw,400px);text-align:center;
+  letter-spacing:2px;
+}
+.px-input:focus{border-color:var(--acc);box-shadow:0 0 12px var(--acc2)}
+.gender-row{display:flex;gap:clamp(12px,4vw,28px)}
+.pxbtn{
+  font-family:'Press Start 2P';font-size:clamp(.5rem,2vw,.8rem);
+  padding:clamp(10px,3vw,16px) clamp(16px,5vw,32px);
+  border:2px solid;cursor:pointer;background:transparent;
+  transition:all .15s;letter-spacing:1px;
+}
+.pxbtn::before{content:'▶ '}
+.pxbtn.queen{color:var(--pink);border-color:var(--pink)}
+.pxbtn.king{color:var(--blue);border-color:var(--blue)}
+.pxbtn.queen:hover{background:var(--pink);color:var(--bg);box-shadow:0 0 16px var(--pink)}
+.pxbtn.king:hover{background:var(--blue);color:var(--bg);box-shadow:0 0 16px var(--blue)}
+.pxbtn:active{transform:scale(.95)}
+.pxbtn.primary{color:var(--acc);border-color:var(--acc)}
+.pxbtn.primary:hover{background:var(--acc);color:var(--bg);box-shadow:0 0 16px var(--acc)}
+.pxbtn.danger{color:var(--red);border-color:var(--red)}
+.pxbtn.danger:hover{background:var(--red);color:var(--bg)}
+
+/* ═══════════ COMPANION SELECT ═══════════ */
+#s-companion{background:var(--bg);padding:clamp(14px,4vw,28px);gap:clamp(12px,3vw,22px)}
+.comp-title{font-family:'Press Start 2P';font-size:clamp(.7rem,3vw,1.1rem);color:var(--gold);text-align:center}
+.comp-grid{display:flex;gap:clamp(8px,2.5vw,18px);width:98%;max-width:820px}
+.comp-card{
+  flex:1;border:2px solid var(--dim);padding:clamp(8px,2.5vw,14px);
+  cursor:pointer;text-align:center;background:rgba(0,0,0,.5);
+  transition:all .2s;position:relative;
+}
+.comp-card:hover{transform:translateY(-8px)}
+.comp-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block;margin-bottom:6px;border:1px solid var(--dim)}
+.comp-card-name{font-family:'Press Start 2P';font-size:clamp(.45rem,1.8vw,.7rem);letter-spacing:1px}
+.comp-card-sub{font-size:clamp(.75rem,2vw,.9rem);color:var(--dim);margin-top:3px}
+
+/* ═══════════ MAIN HUB ═══════════ */
+#s-hub{background:var(--bg);padding:0;flex-direction:column;align-items:stretch;justify-content:flex-start;padding-bottom:clamp(44px,9vw,58px)}
+
+/* Top bar */
+#topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:clamp(6px,2vw,12px) clamp(10px,3vw,18px);
+  border-bottom:2px solid var(--dim);background:rgba(0,0,0,.6);
+  flex-shrink:0;
+}
+#tb-title{font-family:'Press Start 2P';font-size:clamp(.45rem,1.8vw,.7rem);color:var(--acc)}
+#tb-chapter{font-family:'Press Start 2P';font-size:clamp(.4rem,1.5vw,.6rem);color:var(--gold)}
+#tb-energy{font-family:'Press Start 2P';font-size:clamp(.4rem,1.5vw,.6rem);color:var(--gold)}
+
+/* Affection bar */
+#aff-bar-wrap{padding:4px clamp(10px,3vw,18px);background:rgba(0,0,0,.4);border-bottom:1px solid var(--dim);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#aff-label{font-family:'Press Start 2P';font-size:clamp(.35rem,1.2vw,.55rem);color:var(--pink);white-space:nowrap}
+#aff-bar{flex:1;height:8px;background:var(--dim);position:relative}
+#aff-fill{height:100%;background:var(--pink);transition:width .5s;width:0%}
+#aff-level{font-family:'Press Start 2P';font-size:clamp(.35rem,1.2vw,.55rem);color:var(--pink);white-space:nowrap}
+
+/* Hub content */
+#hub-content{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+
+/* Chapter map */
+#chapter-map{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:clamp(16px,5vw,32px);padding:clamp(14px,4vw,24px);
+  overflow-y:auto;
+}
+.chapter-node{
+  width:clamp(200px,75vw,420px);border:2px solid var(--dim);padding:clamp(12px,4vw,20px);
+  cursor:pointer;position:relative;background:rgba(0,0,0,.5);
+  transition:all .2s;
+}
+.chapter-node.active-ch{border-color:var(--acc);box-shadow:0 0 16px var(--acc2)}
+.chapter-node.locked-ch{opacity:.45;cursor:not-allowed}
+.chapter-node.locked-ch::after{content:'🔒 LOCKED';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Press Start 2P';font-size:.6rem;color:var(--red);background:rgba(0,0,0,.8);padding:6px 10px}
+.chapter-node.done-ch{border-color:var(--gold)}
+.ch-num{font-family:'Press Start 2P';font-size:clamp(.45rem,1.8vw,.7rem);color:var(--gold);margin-bottom:6px}
+.ch-title{font-family:'Press Start 2P';font-size:clamp(.55rem,2.2vw,.85rem);margin-bottom:8px}
+.ch-desc{font-size:clamp(.85rem,2.5vw,1.1rem);color:var(--dim);line-height:1.5}
+.ch-tasks{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.ch-task-badge{font-family:'Press Start 2P';font-size:clamp(.35rem,1.2vw,.5rem);padding:3px 6px;border:1px solid}
+
+/* ═══════════ ACTIVITY SCREEN ═══════════ */
+#s-activity{background:var(--bg);flex-direction:column;padding:0;padding-bottom:clamp(44px,9vw,58px)}
+#act-header{padding:clamp(8px,2vw,14px) clamp(12px,3vw,20px);border-bottom:2px solid var(--dim);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.6);flex-shrink:0}
+#act-title{font-family:'Press Start 2P';font-size:clamp(.55rem,2vw,.85rem)}
+#act-body{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+/* CHAT */
+#chat-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
+#chat-msgs{flex:1;overflow-y:auto;padding:clamp(10px,3vw,16px);display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--dim) transparent}
+.msg{max-width:88%;padding:clamp(8px,2.5vw,12px) clamp(10px,3vw,16px);font-size:clamp(.9rem,3vw,1.15rem);line-height:1.6;position:relative}
+.msg.char{align-self:flex-start;background:rgba(0,255,65,.07);border-left:3px solid var(--acc)}
+.msg.user{align-self:flex-end;background:rgba(96,176,255,.07);border-right:3px solid var(--blue);text-align:right}
+.msg.system{align-self:center;background:rgba(255,215,0,.08);border:1px solid var(--gold);color:var(--gold);font-family:'Press Start 2P';font-size:clamp(.42rem,1.4vw,.62rem);text-align:center;padding:8px 16px}
+.msg-name{font-family:'Press Start 2P';font-size:clamp(.38rem,1.2vw,.58rem);margin-bottom:4px;opacity:.7}
+.typing{display:flex;gap:5px;padding:10px 14px;align-self:flex-start}
+.typing span{width:7px;height:7px;background:var(--acc);animation:tdot 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+
+#chat-input-row{padding:clamp(8px,2vw,13px);border-top:2px solid var(--dim);display:flex;gap:8px;flex-shrink:0;background:rgba(0,0,0,.5)}
+#chat-in{flex:1;background:rgba(0,255,65,.05);border:1px solid var(--dim);color:var(--white);padding:10px 14px;font-family:'VT323';font-size:clamp(1rem,3.5vw,1.4rem);outline:none}
+#chat-in:focus{border-color:var(--acc)}
+#chat-send{font-family:'Press Start 2P';font-size:clamp(.42rem,1.5vw,.62rem);padding:10px 14px;background:transparent;border:2px solid var(--acc);color:var(--acc);cursor:pointer}
+#chat-send:hover{background:var(--acc);color:var(--bg)}
+
+/* SCOUTING */
+#scout-area{flex:1;position:relative;overflow:hidden;background:rgba(0,0,0,.3)}
+#scout-canvas{position:absolute;inset:0;width:100%;height:100%}
+#scout-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:'Press Start 2P';font-size:clamp(.42rem,1.5vw,.62rem);color:var(--gold);text-align:center;pointer-events:none}
+
+/* TRAINING */
+#training-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:clamp(14px,4vw,28px)}
+#training-question{font-family:'Press Start 2P';font-size:clamp(.55rem,2.2vw,.85rem);color:var(--acc);text-align:center;line-height:1.8;max-width:600px}
+#training-opts{display:flex;flex-direction:column;gap:10px;width:clamp(240px,70vw,500px)}
+.train-opt{font-family:'Press Start 2P';font-size:clamp(.45rem,1.8vw,.7rem);padding:12px 16px;border:2px solid var(--dim);cursor:pointer;background:transparent;color:var(--white);text-align:left;transition:all .15s}
+.train-opt:hover{border-color:var(--acc);color:var(--acc)}
+.train-opt.correct{border-color:var(--acc);color:var(--acc);background:rgba(0,255,65,.1)}
+.train-opt.wrong{border-color:var(--red);color:var(--red);background:rgba(255,32,32,.1)}
+
+/* MINIGAME */
+#s-minigame{background:#000;flex-direction:column;padding:0}
+#mg-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:2px solid var(--dim);background:#000;flex-shrink:0}
+#mg-title-px{font-family:'Press Start 2P';font-size:clamp(.5rem,2vw,.8rem);color:var(--red)}
+#mg-lives-px{font-family:'Press Start 2P';font-size:clamp(.45rem,1.8vw,.72rem);color:var(--red)}
+#mg-score-px{font-family:'Press Start 2P';font-size:clamp(.45rem,1.8vw,.72rem);color:var(--gold)}
+#mg-canvas{display:block;margin:0 auto;border:2px solid var(--dim);image-rendering:pixelated;max-width:100%;max-height:calc(100vh - 70px)}
+
+/* COMPANION WIDGET */
+#companion-widget{
+  position:fixed;bottom:clamp(56px,12vw,80px);left:0;right:0;
+  display:none;align-items:flex-end;justify-content:flex-start;
+  padding:0 clamp(10px,3vw,18px);z-index:300;pointer-events:none;
+}
+#comp-sprite{width:clamp(44px,10vw,64px);height:clamp(44px,10vw,64px);object-fit:cover;border:2px solid var(--acc);flex-shrink:0;pointer-events:auto;cursor:pointer}
+#comp-dialog{
+  background:var(--panel);border:2px solid var(--acc);
+  padding:clamp(8px,2.5vw,14px) clamp(10px,3vw,16px);
+  font-size:clamp(.85rem,3vw,1.1rem);line-height:1.55;
+  max-width:clamp(200px,60vw,420px);margin-left:10px;
+  display:none;position:relative;
+}
+#comp-dialog::before{content:'';position:absolute;left:-10px;bottom:10px;border:5px solid transparent;border-right-color:var(--acc)}
+#comp-dialog.show{display:block;animation:fadeIn .3s ease}
+
+/* BOTTOM NAV */
+#botnav{
+  position:fixed;bottom:0;left:0;right:0;height:clamp(44px,9vw,58px);
+  background:rgba(0,0,0,.92);border-top:2px solid var(--dim);
+  display:none;align-items:center;justify-content:space-around;z-index:400;
+}
+#botnav.show{display:flex}
+.bnbtn{font-family:'Press Start 2P';font-size:clamp(.38rem,1.4vw,.58rem);color:var(--dim);cursor:pointer;padding:6px 10px;background:transparent;border:none;transition:color .2s}
+.bnbtn:hover,.bnbtn.on{color:var(--acc)}
+
+/* OVERLAYS */
+#secret-unlock{
+  position:fixed;inset:0;z-index:700;display:none;
+  align-items:center;justify-content:center;background:rgba(0,0,0,.92);
+}
+#secret-unlock.show{display:flex;flex-direction:column;gap:20px;align-items:center}
+.secret-box{border:3px solid var(--gold);padding:clamp(20px,6vw,40px) clamp(24px,7vw,50px);text-align:center;background:var(--panel);max-width:clamp(280px,80vw,500px)}
+.secret-title{font-family:'Press Start 2P';font-size:clamp(.6rem,2.5vw,.95rem);color:var(--gold);animation:flicker 2s infinite;margin-bottom:14px}
+.secret-letter{font-size:clamp(1rem,3.5vw,1.3rem);line-height:1.7;color:var(--white)}
+
+#mission-pop{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8)}
+#mission-pop.show{display:flex}
+.mission-box{font-family:'Press Start 2P';text-align:center;padding:clamp(20px,5vw,34px) clamp(24px,6vw,44px);border:3px solid var(--gold);background:var(--panel);animation:popIn .3s ease}
+@keyframes popIn{0%{transform:scale(.4)}100%{transform:scale(1)}}
+.mission-h{font-size:clamp(.7rem,2.5vw,1.1rem);color:var(--gold);animation:flicker 1s infinite}
+.mission-s{font-size:clamp(.5rem,1.8vw,.75rem);color:var(--acc);margin-top:10px}
+.mission-e{font-size:clamp(.55rem,2vw,.82rem);color:var(--white);margin-top:8px}
+
+#jumpscare{position:fixed;inset:0;z-index:800;display:none;background:#ff0000;align-items:center;justify-content:center}
+#jumpscare.show{display:flex;animation:jsIn .4s ease}
+@keyframes jsIn{0%{opacity:0;transform:scale(2.5)}100%{opacity:1;transform:scale(1)}}
+.js-txt{font-family:'Press Start 2P';font-size:clamp(1rem,5vw,2.2rem);color:#000;text-align:center;animation:shake2 .08s infinite}
+@keyframes shake2{0%,100%{transform:translate(0)}25%{transform:translate(-5px,5px)}75%{transform:translate(5px,-5px)}}
+
+#toast{position:fixed;bottom:clamp(70px,14vw,90px);left:50%;transform:translateX(-50%);font-family:'Press Start 2P';font-size:clamp(.42rem,1.5vw,.62rem);padding:10px 18px;border:2px solid var(--acc);background:var(--panel);color:var(--acc);z-index:500;display:none;text-align:center;white-space:nowrap}
+
+#achievements-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(280px,85vw,480px);max-height:78vh;overflow-y:auto;background:var(--panel);border:3px solid var(--gold);z-index:550;display:none;padding:18px}
+#achievements-panel.show{display:block}
+.ach-hdr{font-family:'Press Start 2P';font-size:clamp(.55rem,2vw,.8rem);color:var(--gold);margin-bottom:14px;text-align:center}
+.ach-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--dim);margin-bottom:6px}
+.ach-ico{font-size:1.3rem;flex-shrink:0}
+.ach-inf .ach-nm{font-family:'Press Start 2P';font-size:clamp(.38rem,1.3vw,.58rem);color:var(--white)}
+.ach-inf .ach-ds{font-size:clamp(.72rem,2vw,.88rem);color:var(--dim);margin-top:2px}
+.ach-item.on{border-color:var(--gold);background:rgba(255,215,0,.04)}
+.ach-item.off{opacity:.38}
+
+/* SHOP */
+#shop-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(280px,85vw,480px);max-height:78vh;overflow-y:auto;background:var(--panel);border:3px solid var(--blue);z-index:550;display:none;padding:18px}
+#shop-panel.show{display:block}
+.shop-hdr{font-family:'Press Start 2P';font-size:clamp(.55rem,2vw,.8rem);color:var(--blue);margin-bottom:14px;text-align:center}
+.shop-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--dim);margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.shop-item:hover{border-color:var(--blue)}
+.shop-item.bought{opacity:.4;cursor:not-allowed}
+.shop-nm{font-family:'Press Start 2P';font-size:clamp(.42rem,1.5vw,.62rem);color:var(--white)}
+.shop-ds{font-size:clamp(.75rem,2.2vw,.92rem);color:var(--dim);margin-top:3px}
+.shop-price{font-family:'Press Start 2P';font-size:clamp(.42rem,1.5vw,.62rem);color:var(--gold);white-space:nowrap;margin-left:10px}
+</style>
+</head>
+<body>
+<div id="cur"></div>
+<div id="crt"></div>
+<div id="scanline"></div>
+
+<!-- COMPANION WIDGET -->
+<div id="companion-widget">
+  <img id="comp-sprite" src="" alt="" onclick="toggleCompDialog()">
+  <div id="comp-dialog"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="botnav">
+  <button class="bnbtn on" onclick="showHub()">🗺 MAP</button>
+  <button class="bnbtn" onclick="openChat()">💬 CHAT</button>
+  <button class="bnbtn" onclick="openShop()">🛒 SHOP</button>
+  <button class="bnbtn" onclick="showAch()">🏆 ACH</button>
+  <button class="bnbtn" id="bn-energy">⚡ 0</button>
+</div>
+
+<!-- ══ INTRO ══ -->
+<div id="s-intro" class="screen active">
+  <div class="intro-logo fade-in">TOKYO<br>LOST SHADOWS</div>
+  <div class="intro-sub fade-in">// THE CURSED WORLD AWAITS //</div>
+  <input id="name-input" class="px-input fade-in" placeholder="ENTER YOUR NAME..." maxlength="16">
+  <div class="fade-in" style="font-family:'Press Start 2P';font-size:clamp(.45rem,1.8vw,.7rem);color:var(--dim)">CHOOSE YOUR ROLE:</div>
+  <div class="gender-row fade-in">
+    <button class="pxbtn queen" onclick="setGender('queen')">QUEEN ♀</button>
+    <button class="pxbtn king"  onclick="setGender('king')">KING ♂</button>
+  </div>
+  <div id="intro-err" style="font-family:'Press Start 2P';font-size:.55rem;color:var(--red);display:none">ENTER YOUR NAME FIRST</div>
+</div>
+
+<!-- ══ COMPANION SELECT ══ -->
+<div id="s-companion" class="screen">
+  <div class="comp-title">CHOOSE YOUR COMPANION</div>
+  <div style="font-size:clamp(.85rem,3vw,1.1rem);color:var(--dim);text-align:center">They will fight beside you. Choose wisely.</div>
+  <div class="comp-grid" id="comp-grid"></div>
+</div>
+
+<!-- ══ HUB ══ -->
+<div id="s-hub" class="screen">
+  <div id="topbar">
+    <div id="tb-title">LOST SHADOWS</div>
+    <div id="tb-chapter">CHAPTER 1</div>
+    <div id="tb-energy">⚡ 0 CE</div>
+  </div>
+  <div id="aff-bar-wrap">
+    <div id="aff-label">♥ BOND:</div>
+    <div id="aff-bar"><div id="aff-fill"></div></div>
+    <div id="aff-level">LV.0</div>
+  </div>
+  <div id="hub-content">
+    <div id="chapter-map"></div>
+  </div>
+</div>
+
+<!-- ══ ACTIVITY ══ -->
+<div id="s-activity" class="screen">
+  <div id="act-header">
+    <div id="act-title">CHITCHAT</div>
+    <button class="pxbtn danger" style="font-size:.45rem;padding:6px 10px" onclick="backToHub()">◀ BACK</button>
+  </div>
+  <div id="act-body"></div>
+</div>
+
+<!-- ══ MINIGAME ══ -->
+<div id="s-minigame" class="screen">
+  <div id="mg-bar">
+    <div id="mg-title-px">DOMAIN</div>
+    <div id="mg-lives-px">♥♥♥</div>
+    <div id="mg-score-px">SCORE: 0</div>
+  </div>
+  <canvas id="mg-canvas"></canvas>
+</div>
+
+<!-- OVERLAYS -->
+<div id="secret-unlock"></div>
+<div id="mission-pop"></div>
+<div id="jumpscare"><div class="js-txt" id="js-txt">CURSE CONSUMED YOU</div></div>
+<div id="toast"></div>
+
+<div id="achievements-panel">
+  <div class="ach-hdr">⚡ ACHIEVEMENTS ⚡</div>
+  <div id="ach-list"></div>
+  <button class="pxbtn danger" style="width:100%;margin-top:10px;font-size:.45rem" onclick="closeOverlays()">▶ CLOSE</button>
+</div>
+
+<div id="shop-panel">
+  <div class="shop-hdr">🛒 CURSED SHOP</div>
+  <div style="font-family:'Press Start 2P';font-size:.5rem;color:var(--gold);margin-bottom:12px;text-align:center">⚡ <span id="shop-energy-disp">0</span> CE</div>
+  <div id="shop-list"></div>
+  <button class="pxbtn danger" style="width:100%;margin-top:10px;font-size:.45rem" onclick="closeOverlays()">▶ CLOSE</button>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   GEMINI API
+══════════════════════════════════ */
+const _k=['AIzaSyDyO57oD3','TRihW4FNeY8szI','1ndiWUzpj8c'];
+const API_URL=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${_k.join('')}`;
+
+async function callGemini(systemPrompt, history){
+  const body={
+    system_instruction:{parts:[{text:systemPrompt}]},
+    contents:history,
+    generationConfig:{maxOutputTokens:180,temperature:0.9}
+  };
+  const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json();
+  if(!r.ok||!d.candidates?.[0]) throw new Error(d?.error?.message||'API error');
+  return d.candidates[0].content.parts[0].text;
+}
+
+/* ══════════════════════════════════
+   STATE
+══════════════════════════════════ */
+const S={
+  name:     localStorage.getItem('tls_name')||'',
+  gender:   localStorage.getItem('tls_gender')||'',
+  comp:     localStorage.getItem('tls_comp')||'',
+  energy:   +localStorage.getItem('tls_energy')||100,
+  affection:+localStorage.getItem('tls_aff')||0,
+  chapter:  +localStorage.getItem('tls_ch')||1,
+  tasks:    JSON.parse(localStorage.getItem('tls_tasks')||'{}'),
+  ach:      JSON.parse(localStorage.getItem('tls_ach')||'{}'),
+  bought:   JSON.parse(localStorage.getItem('tls_bought')||'[]'),
+  chatHist: [],
+};
+function save(){
+  ['name','gender','comp','energy','affection','chapter'].forEach(k=>localStorage.setItem('tls_'+k,S[k]));
+  localStorage.setItem('tls_tasks',JSON.stringify(S.tasks));
+  localStorage.setItem('tls_ach',JSON.stringify(S.ach));
+  localStorage.setItem('tls_bought',JSON.stringify(S.bought));
+}
+
+/* ══════════════════════════════════
+   CHARACTERS
+══════════════════════════════════ */
+const CHARS={
+  gojo:{name:'GOJO',sub:'The Strongest',color:'#60b0ff',
+    img:'https://i.ibb.co/XrGJN2qL/cca7306ec12eca7839041d76ed0e9432.jpg',
+    symbol:'🥽',gender:'queen',
+    system:n=>`You are Satoru Gojo from Jujutsu Kaisen. The user's name is ${n}. You are arrogant, playful, and the strongest sorcerer. You address ${n} directly, teasingly. You are their companion in a cursed world. Keep responses under 3 sentences. Be confident and flirty.`,
+    idle:n=>[`${n}, you still here? Good. I'd be bored without you.`,`Feeling the cursed energy, ${n}? I've been sensing it for a while.`,`Don't zone out, ${n}. The curtain's still up.`],
+  },
+  toji:{name:'TOJI',sub:'The Exception',color:'#7ab648',
+    img:'https://i.ibb.co/yFpW9w0W/a3f96501c35eef0b5356a02df9877502.jpg',
+    symbol:'⛓',gender:'queen',
+    system:n=>`You are Toji Fushiguro. The user's name is ${n}. Cold, blunt, few words. You respect ${n} enough to be their companion. Keep responses under 2 sentences. Direct and slightly cold.`,
+    idle:n=>[`${n}. Stay alert.`,`Don't get comfortable, ${n}.`,`I'm watching. You should be too, ${n}.`],
+  },
+  sukuna:{name:'SUKUNA',sub:'King of Curses',color:'#ff2020',
+    img:'https://i.postimg.cc/JnjcCtwN/8627ad2ecd5baa55a494b91957ebc1eb.jpg',
+    symbol:'⛧',gender:'queen',
+    system:n=>`You are Ryomen Sukuna. The user's name is ${n}. You are domineering and possessive. ${n} is yours — you protect what's yours. Keep responses under 3 sentences. Menacing but oddly protective.`,
+    idle:n=>[`${n}. Don't wander.`,`Stay close to me, ${n}. This world doesn't deserve you.`,`I can feel the curses near ${n}. How annoying.`],
+  },
+  maki:{name:'MAKI',sub:'The Blade',color:'#b090e0',
+    img:'https://via.placeholder.com/300/1a1020/b090e0?text=MAKI',
+    symbol:'⚔',gender:'king',
+    system:n=>`You are Maki Zenin. The user's name is ${n}. Sharp, direct, honest. You and ${n} are partners. Keep responses under 2 sentences. Tough but caring underneath.`,
+    idle:n=>[`${n}, keep moving.`,`You're doing alright, ${n}. Don't stop.`,`Stay sharp, ${n}.`],
+  },
+  yuki:{name:'YUKI',sub:'The Star',color:'#a070e0',
+    img:'https://via.placeholder.com/300/0a0818/9060d0?text=YUKI',
+    symbol:'✦',gender:'king',
+    system:n=>`You are Yuki Tsukumo. The user's name is ${n}. Philosophical, cosmic, mysterious. ${n} is special to you. Keep responses under 3 sentences. Poetic and warm.`,
+    idle:n=>[`The stars are aligned for you today, ${n}.`,`I was just thinking about you, ${n}.`,`Feel that energy, ${n}? That's the universe acknowledging you.`],
+  },
+  utahime:{name:'UTAHIME',sub:'The Song',color:'#d090c0',
+    img:'https://via.placeholder.com/300/120a18/a070c0?text=UTAHIME',
+    symbol:'♪',gender:'king',
+    system:n=>`You are Utahime Iori. The user's name is ${n}. Warm, slightly shy, musical. You care deeply about ${n}. Keep responses under 3 sentences. Gentle and sincere.`,
+    idle:n=>[`${n}... I was humming something that reminded me of you.`,`You okay, ${n}? I'm here if you need me.`,`I wrote a verse for you, ${n}. Maybe I'll share it later.`],
+  }
+};
+
+/* ══════════════════════════════════
+   CHAPTERS
+══════════════════════════════════ */
+const CHAPTERS=[
+  {
+    num:1,title:'THE FIRST CURTAIN',
+    desc:'A cursed veil has fallen over Tokyo. Scout the domain and find the hidden soul shard.',
+    tasks:[
+      {id:'ch1_chat',label:'CHITCHAT',type:'chat',desc:'Talk with your companion (5 messages)',done:false},
+      {id:'ch1_train',label:'TRAINING',type:'train',desc:'Pass the training session',done:false},
+      {id:'ch1_boss',label:'BOSS FIGHT',type:'boss',desc:'Defeat the Curtain Curse',done:false},
+    ],
+    bossType:'dodge',energy:200,
+    story:'The air grows heavy. Your companion senses a massive cursed spirit nearby — the Curtain Curse that sealed this district.',
+  },
+  {
+    num:2,title:'SHADOWS OF SHIBUYA',
+    desc:'Deeper into the lost district. The curses grow stronger. Your bond must too.',
+    tasks:[
+      {id:'ch2_scout',label:'SCOUT',type:'scout',desc:'Find the hidden soul shard',done:false},
+      {id:'ch2_train',label:'TRAINING',type:'train',desc:'Pass advanced training',done:false},
+      {id:'ch2_boss',label:'BOSS FIGHT',type:'boss',desc:'Defeat the Shadow Curse',done:false},
+    ],
+    bossType:'catch',energy:350,
+    story:'The shadow of something ancient stretches across Shibuya. Your companion has never seen this curse before.',
+  },
+  {
+    num:3,title:'THE FINAL DOMAIN',
+    desc:'The truth of the Lost Shadows awaits. One final battle. One final choice.',
+    tasks:[
+      {id:'ch3_chat',label:'FINAL TALK',type:'chat',desc:'Have a deep conversation (8 messages)',done:false},
+      {id:'ch3_train',label:'FINAL TEST',type:'train',desc:'Prove your knowledge',done:false},
+      {id:'ch3_boss',label:'FINAL BOSS',type:'boss',desc:'Defeat the Domain Curse',done:false},
+    ],
+    bossType:'slash',energy:500,
+    story:'The final domain expands. Everything you\'ve built together leads to this moment.',
+  }
+];
+
+/* ══════════════════════════════════
+   TRAINING QUESTIONS
+══════════════════════════════════ */
+const QUESTIONS=[
+  {q:'What is the name of Gojo\'s technique that uses infinity?',opts:['Hollow Purple','Limitless','Malevolent Shrine','Black Flash'],ans:1},
+  {q:'Who is the King of Curses?',opts:['Gojo','Toji','Sukuna','Geto'],ans:2},
+  {q:'What is a "Domain Expansion"?',opts:['A cursed tool','A barrier technique that guarantees attacks hit','A type of sorcerer rank','A healing spell'],ans:1},
+  {q:'Toji Fushiguro is known as?',opts:['The Sorcerer Killer','The Strongest','The Star Plasma Vessel','The Six Eyes'],ans:0},
+  {q:'What school do Jujutsu sorcerers attend?',opts:['Hogwarts','Tokyo High','Jujutsu High','Shibuya Academy'],ans:1},
+  {q:'Maki Zenin was born into which clan?',opts:['Gojo','Zenin','Kamo','Inumaki'],ans:1},
+  {q:'What is Yuki Tsukumo\'s rank?',opts:['Grade 1','Grade 2','Special Grade','Unranked'],ans:2},
+  {q:'What does "Cleave" do in Sukuna\'s technique?',opts:['Heals the user','Cuts anything proportional to its toughness','Creates a domain','Summons a shikigami'],ans:1},
+];
+
+/* ══════════════════════════════════
+   ACHIEVEMENTS
+══════════════════════════════════ */
+const ACHS=[
+  {id:'first_msg',icon:'💬',name:'FIRST WORDS',desc:'Send your first message'},
+  {id:'ch1_done',icon:'⛩',name:'CURTAIN LIFTED',desc:'Complete Chapter 1'},
+  {id:'ch2_done',icon:'🌑',name:'SHADOW WALKER',desc:'Complete Chapter 2'},
+  {id:'ch3_done',icon:'⛧',name:'DOMAIN MASTER',desc:'Complete Chapter 3'},
+  {id:'aff_max',icon:'♥',name:'TRUE BOND',desc:'Reach max Affection Level 10'},
+  {id:'energy_500',icon:'⚡',name:'CURSED RICH',desc:'Accumulate 500 CE'},
+  {id:'energy_1000',icon:'💎',name:'CURSED MASTER',desc:'Accumulate 1000 CE'},
+  {id:'win3',icon:'🏆',name:'UNDEFEATED',desc:'Win 3 boss fights'},
+];
+
+/* ══════════════════════════════════
+   SHOP ITEMS
+══════════════════════════════════ */
+const SHOP_ITEMS=[
+  {id:'cursor_red',name:'RED CURSOR',desc:'Change cursor to crimson',price:150,effect:()=>setCursorColor('#ff2020')},
+  {id:'cursor_gold',name:'GOLD CURSOR',desc:'Change cursor to gold',price:200,effect:()=>setCursorColor('#ffd700')},
+  {id:'cursor_pink',name:'PINK CURSOR',desc:'Change cursor to pink',price:200,effect:()=>setCursorColor('#ff6eb4')},
+  {id:'bg_deep',name:'DEEP VOID BG',desc:'Darker background theme',price:300,effect:()=>document.body.style.background='#020106'},
+  {id:'crt_off',name:'NO CRT',desc:'Remove CRT scanlines',price:250,effect:()=>document.getElementById('crt').style.display='none'},
+  {id:'noise_on',name:'PIXEL NOISE',desc:'Add pixel noise effect',price:180,effect:()=>startNoise()},
+];
+
+/* ══════════════════════════════════
+   CURSOR
+══════════════════════════════════ */
+const cur=document.getElementById('cur');
+document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px'});
+function setCursorColor(c){cur.style.background=c;cur.style.boxShadow=`0 0 8px ${c}`}
+
+/* ══════════════════════════════════
+   SCREEN MANAGEMENT
+══════════════════════════════════ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const nav=document.getElementById('botnav');
+  const cw=document.getElementById('companion-widget');
+  const showNav=['s-hub','s-activity'].includes(id);
+  nav.classList.toggle('show',showNav);
+  cw.style.display=showNav?'flex':'none';
+}
+
+/* ══════════════════════════════════
+   INTRO
+══════════════════════════════════ */
+function setGender(g){
+  const n=document.getElementById('name-input').value.trim();
+  if(!n){document.getElementById('intro-err').style.display='block';return;}
+  document.getElementById('intro-err').style.display='none';
+  S.name=n; S.gender=g; save();
+  buildCompScreen();
+  transitionTo('s-companion');
+}
+
+function transitionTo(id){
+  const cur2=document.querySelector('.screen.active');
+  if(cur2) cur2.classList.add('fade-out');
+  setTimeout(()=>showScreen(id),450);
+}
+
+/* ══════════════════════════════════
+   COMPANION SELECT
+══════════════════════════════════ */
+function buildCompScreen(){
+  const chars=S.gender==='queen'
+    ?['gojo','toji','sukuna']
+    :['maki','yuki','utahime'];
+  const grid=document.getElementById('comp-grid');
+  grid.innerHTML='';
+  chars.forEach(id=>{
+    const c=CHARS[id];
+    const d=document.createElement('div');
+    d.className='comp-card';
+    d.style.borderColor=c.color;
+    d.innerHTML=`<img src="${c.img}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/200/0a0010/ffffff?text=${c.name}'"><div class="comp-card-name" style="color:${c.color}">${c.name}</div><div class="comp-card-sub">${c.sub}</div>`;
+    d.onmouseover=()=>{d.style.boxShadow=`0 0 18px ${c.color}`;d.style.borderColor=c.color};
+    d.onmouseout=()=>{d.style.boxShadow='';};
+    d.onclick=()=>selectCompanion(id);
+    grid.appendChild(d);
+  });
+}
+
+function selectCompanion(id){
+  S.comp=id; save();
+  applyCompTheme();
+  buildHub();
+  transitionTo('s-hub');
+  setTimeout(()=>{
+    document.getElementById('botnav').classList.add('show');
+    document.getElementById('companion-widget').style.display='flex';
+    updateCompSprite();
+    updateAllUI();
+    setTimeout(()=>compSay(`${S.name}! You chose me. Good instincts. Let's purge these curses together.`),1200);
+    // idle timer
+    startIdleTimer();
+  },500);
+}
+
+/* ══════════════════════════════════
+   THEME
+══════════════════════════════════ */
+function applyCompTheme(){
+  const c=CHARS[S.comp];
+  if(!c) return;
+  document.documentElement.style.setProperty('--acc',c.color);
+  document.documentElement.style.setProperty('--acc2',c.color+'22');
+  cur.style.background=c.color;
+  cur.style.boxShadow=`0 0 8px ${c.color}`;
+}
+
+/* ══════════════════════════════════
+   HUB
+══════════════════════════════════ */
+function buildHub(){
+  const map=document.getElementById('chapter-map');
+  map.innerHTML='';
+  CHAPTERS.forEach((ch,i)=>{
+    const unlocked=i<S.chapter;
+    const done=S.chapter>i+1;
+    const active=i===S.chapter-1;
+    const node=document.createElement('div');
+    node.className='chapter-node '+(done?'done-ch':active?'active-ch':'locked-ch');
+
+    // check task completion
+    const tasksDone=ch.tasks.filter(t=>S.tasks[t.id]).length;
+
+    node.innerHTML=`
+      <div class="ch-num">CHAPTER ${ch.num} ${done?'✓':''}</div>
+      <div class="ch-title" style="color:${active?'var(--acc)':'var(--white)'}">${ch.title}</div>
+      <div class="ch-desc">${ch.desc}</div>
+      <div class="ch-tasks">
+        ${ch.tasks.map(t=>`<div class="ch-task-badge" style="color:${S.tasks[t.id]?'var(--acc)':'var(--dim)'};border-color:${S.tasks[t.id]?'var(--acc)':'var(--dim)'}">${t.label} ${S.tasks[t.id]?'✓':''}</div>`).join('')}
+      </div>
+      <div style="font-family:'Press Start 2P';font-size:.5rem;color:var(--gold);margin-top:10px">${tasksDone}/3 TASKS • ${ch.energy} CE REWARD</div>
+    `;
+    if(unlocked&&!done){
+      node.onclick=()=>openChapter(i);
+      node.style.cursor='pointer';
+    }
+    map.appendChild(node);
+  });
+}
+
+function openChapter(i){
+  const ch=CHAPTERS[i];
+  const c=CHARS[S.comp];
+  // show chapter story popup then let user pick task
+  const incomplete=ch.tasks.filter(t=>!S.tasks[t.id]);
+  if(incomplete.length===0){
+    showToast('ALL TASKS DONE! Move to next chapter.');
+    return;
+  }
+  const next=incomplete[0];
+  compSay(`${S.name}, it's time. ${ch.story}`);
+  setTimeout(()=>startTask(next,i),1400);
+}
+
+function startTask(task,chIdx){
+  document.getElementById('act-title').textContent=task.label;
+  document.getElementById('act-body').innerHTML='';
+  showScreen('s-activity');
+
+  if(task.type==='chat'||task.type==='chitchat') buildChatUI(task,chIdx);
+  else if(task.type==='train') buildTrainUI(task,chIdx);
+  else if(task.type==='scout') buildScoutUI(task,chIdx);
+  else if(task.type==='boss') startBoss(task,chIdx);
+}
+
+/* ══════════════════════════════════
+   CHAT ACTIVITY
+══════════════════════════════════ */
+let chatMsgCount=0;
+let chatTaskRef=null;
+let chatChIdx=0;
+const MAX_CHAT_FOR_TASK={'ch1_chat':5,'ch3_chat':8};
+
+function buildChatUI(task,chIdx){
+  chatTaskRef=task; chatChIdx=chIdx; chatMsgCount=0;
+  const body=document.getElementById('act-body');
+  body.innerHTML=`
+    <div id="chat-wrap" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:clamp(10px,3vw,16px);display:flex;flex-direction:column;gap:10px;scrollbar-width:thin"></div>
+      <div style="font-family:'Press Start 2P';font-size:.5rem;color:var(--gold);padding:6px 14px;border-top:1px solid var(--dim);flex-shrink:0" id="chat-progress">PROGRESS: 0/${MAX_CHAT_FOR_TASK[task.id]||5}</div>
+      <div id="chat-input-row" style="padding:clamp(8px,2vw,13px);border-top:2px solid var(--dim);display:flex;gap:8px;flex-shrink:0;background:rgba(0,0,0,.5)">
+        <input id="chat-in" class="px-input" style="flex:1;width:auto;text-align:left" placeholder="SPEAK YOUR TRUTH...">
+        <button id="chat-send" class="pxbtn primary" style="font-size:.45rem" onclick="sendChatMsg()">SEND ▶</button>
+      </div>
+    </div>
+  `;
+  body.style.display='flex';body.style.flexDirection='column';body.style.overflow='hidden';
+  document.getElementById('chat-in').onkeydown=e=>{if(e.key==='Enter')sendChatMsg()};
+
+  const c=CHARS[S.comp];
+  addChatMsg('char',c.name,`${S.name}... I've been waiting to talk. What's on your mind?`);
+  checkAch('first_msg');
+}
+
+function addChatMsg(role,name,text){
+  const box=document.getElementById('chat-msgs');
+  if(!box) return;
+  const d=document.createElement('div');
+  d.className=`msg ${role}`;
+  if(role!=='system'){
+    const n=document.createElement('div');
+    n.className='msg-name';
+    n.textContent=role==='char'?`< ${name} >`:'[ YOU ]';
+    d.appendChild(n);
+  }
+  const t=document.createElement('div');
+  t.textContent=text;
+  d.appendChild(t);
+  box.appendChild(d);
+  box.scrollTop=box.scrollHeight;
+}
+
+async function sendChatMsg(){
+  const inp=document.getElementById('chat-in');
+  if(!inp) return;
+  const txt=inp.value.trim();
+  if(!txt) return;
+  inp.value='';
+
+  const c=CHARS[S.comp];
+  addChatMsg('user','YOU',txt);
+  chatMsgCount++;
+
+  // add typing
+  const box=document.getElementById('chat-msgs');
+  const td=document.createElement('div');
+  td.className='msg char';td.id='td';
+  td.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
+  box?.appendChild(td);box&&(box.scrollTop=box.scrollHeight);
+
+  S.chatHist.push({role:'user',parts:[{text:txt}]});
+
+  try{
+    const reply=await callGemini(c.system(S.name),S.chatHist);
+    document.getElementById('td')?.remove();
+    S.chatHist.push({role:'model',parts:[{text:reply}]});
+    addChatMsg('char',c.name,reply);
+    addEnergy(12);
+    addAffection(2);
+
+    // update progress
+    const need=MAX_CHAT_FOR_TASK[chatTaskRef?.id]||5;
+    const prog=document.getElementById('chat-progress');
+    if(prog) prog.textContent=`PROGRESS: ${Math.min(chatMsgCount,need)}/${need}`;
+
+    if(chatMsgCount>=need&&chatTaskRef&&!S.tasks[chatTaskRef.id]){
+      S.tasks[chatTaskRef.id]=true; save();
+      setTimeout(()=>{
+        completedTask(chatTaskRef.label,150,chatChIdx);
+      },600);
+    }
+  }catch(e){
+    document.getElementById('td')?.remove();
+    addChatMsg('system','','⚠ CURSED ENERGY DISRUPTED: '+e.message);
+  }
+}
+
+/* ══════════════════════════════════
+   TRAINING ACTIVITY
+══════════════════════════════════ */
+let trainCorrect=0;
+let trainTaskRef=null;
+let trainChIdx=0;
+
+function buildTrainUI(task,chIdx){
+  trainTaskRef=task;trainChIdx=chIdx;trainCorrect=0;
+  const q=QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
+  const body=document.getElementById('act-body');
+  body.innerHTML='';
+  body.style.display='flex';body.style.flexDirection='column';
+
+  const c=CHARS[S.comp];
+  const area=document.createElement('div');
+  area.id='training-area';
+  area.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:clamp(14px,4vw,28px)';
+  area.innerHTML=`
+    <div style="font-size:clamp(.85rem,3vw,1.1rem);color:var(--dim);text-align:center">⚡ ${c.name} PRESENTS A CHALLENGE ⚡</div>
+    <div id="training-question" style="font-family:'Press Start 2P';font-size:clamp(.55rem,2.2vw,.85rem);color:var(--acc);text-align:center;line-height:1.8;max-width:600px">${q.q}</div>
+    <div id="training-opts" style="display:flex;flex-direction:column;gap:10px;width:clamp(240px,70vw,500px)">
+      ${q.opts.map((o,i)=>`<button class="train-opt" onclick="checkAnswer(${i},${q.ans},this)">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+    </div>
+    <div id="train-result" style="font-family:'Press Start 2P';font-size:.65rem;text-align:center;min-height:30px"></div>
+  `;
+  body.appendChild(area);
+}
+
+function checkAnswer(chosen,correct,btn){
+  document.querySelectorAll('.train-opt').forEach(b=>b.disabled=true);
+  const res=document.getElementById('train-result');
+  if(chosen===correct){
+    btn.classList.add('correct');
+    res.style.color='var(--acc)';
+    res.textContent='✓ CORRECT! CURSED ENERGY GAINED';
+    addEnergy(80); addAffection(5);
+    if(trainTaskRef&&!S.tasks[trainTaskRef.id]){
+      S.tasks[trainTaskRef.id]=true; save();
+      setTimeout(()=>completedTask(trainTaskRef.label,200,trainChIdx),1200);
+    }
+  }else{
+    btn.classList.add('wrong');
+    document.querySelectorAll('.train-opt')[correct].classList.add('correct');
+    res.style.color='var(--red)';
+    res.textContent='✗ WRONG. TRY AGAIN.';
+    setTimeout(()=>buildTrainUI(trainTaskRef,trainChIdx),2000);
+  }
+}
+
+/* ══════════════════════════════════
+   SCOUT ACTIVITY
+══════════════════════════════════ */
+function buildScoutUI(task,chIdx){
+  const body=document.getElementById('act-body');
+  body.innerHTML='';body.style.display='block';body.style.position='relative';body.style.overflow='hidden';
+  body.style.height='100%';
+
+  const canvas=document.createElement('canvas');
+  canvas.style.cssText='width:100%;height:100%;display:block';
+  canvas.width=body.offsetWidth||350;
+  canvas.height=body.offsetHeight||400;
+  body.appendChild(canvas);
+
+  const hint=document.createElement('div');
+  hint.style.cssText='position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:Press Start 2P;font-size:.5rem;color:var(--gold);text-align:center;pointer-events:none;white-space:nowrap';
+  hint.textContent='FIND THE HIDDEN SOUL SHARD ◆';
+  body.appendChild(hint);
+
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const c=CHARS[S.comp];
+
+  // hidden shard position
+  const sx=20+Math.random()*(W-60);
+  const sy=20+Math.random()*(H-80);
+  let found=false;
+
+  // draw scene
+  function draw(){
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle='#0a0a1a';ctx.lineWidth=1;
+    for(let x=0;x<W;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(let y=0;y<H;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    // some pixel "buildings"
+    ctx.fillStyle='#0d0d1a';
+    [[0,H-80,60,80],[80,H-120,80,120],[200,H-60,70,60],[300,H-100,90,100]].forEach(([x,y,w,h])=>ctx.fillRect(x,y,w,h));
+    // shard (pulsing)
+    if(!found){
+      const pulse=(Math.sin(Date.now()*.005)+1)*.5;
+      ctx.fillStyle=`rgba(255,215,0,${.3+pulse*.7})`;
+      ctx.fillRect(sx,sy,16,16);
+      ctx.strokeStyle='#ffd700';ctx.lineWidth=2;
+      ctx.strokeRect(sx,sy,16,16);
+    }
+    // hint arrow
+    ctx.fillStyle=c.color;ctx.font='bold 18px VT323';ctx.fillText(c.symbol,10,H-10);
+  }
+  function loop(){if(!found)requestAnimationFrame(loop);draw();}
+  loop();
+
+  canvas.onclick=e=>{
+    if(found) return;
+    const r=canvas.getBoundingClientRect();
+    const mx=(e.clientX-r.left)*(W/r.width);
+    const my=(e.clientY-r.top)*(H/r.height);
+    if(mx>=sx-10&&mx<=sx+26&&my>=sy-10&&my<=sy+26){
+      found=true;
+      ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#ffd700';ctx.font='bold 28px Press Start 2P';
+      ctx.textAlign='center';ctx.fillText('SOUL SHARD',W/2,H/2-20);
+      ctx.font='16px Press Start 2P';ctx.fillStyle='var(--acc)';
+      ctx.fillText('FOUND! +200 CE',W/2,H/2+20);
+      addEnergy(200);addAffection(8);
+      if(!S.tasks[task.id]){S.tasks[task.id]=true;save();}
+      setTimeout(()=>completedTask(task.label,200,chIdx),1500);
+    }
+  };
+  canvas.ontouchstart=e=>{e.preventDefault();canvas.onclick({clientX:e.touches[0].clientX,clientY:e.touches[0].clientY})};
+
+  compSay(`${S.name}, the shard is hidden somewhere in this area. Tap where you sense cursed energy.`);
+}
+
+/* ══════════════════════════════════
+   BOSS FIGHT (MINIGAME)
+══════════════════════════════════ */
+let mgWinCb=null;
+let mgLoseCb=null;
+let mgActive=false;
+let wins=0;
+
+function startBoss(task,chIdx){
+  const ch=CHAPTERS[chIdx];
+  const c=CHARS[S.comp];
+  document.getElementById('mg-title-px').textContent=ch.title+' BOSS';
+  document.getElementById('mg-title-px').style.color=c.color;
+  showScreen('s-minigame');
+
+  compSay(`${S.name}! Fight with everything you have!`);
+
+  mgWinCb=()=>{
+    wins++;
+    if(!S.tasks[task.id]){S.tasks[task.id]=true;save();}
+    checkAch('win3',wins>=3);
+    completedTask(task.label,ch.energy,chIdx);
+    checkChapterComplete(chIdx);
+    showScreen('s-hub');buildHub();
+  };
+  mgLoseCb=()=>{ showScreen('s-activity'); buildTrainUI(task,chIdx); };
+
+  const canvas=document.getElementById('mg-canvas');
+  const W=canvas.width=Math.min(window.innerWidth-4,480);
+  const H=canvas.height=Math.min(window.innerHeight-70,480);
+  mgActive=true;
+
+  if(ch.bossType==='dodge') runDodge(canvas,W,H,c.color);
+  else if(ch.bossType==='catch') runCatch(canvas,W,H,c.color);
+  else runSlash(canvas,W,H,c.color);
+}
+
+function runDodge(canvas,W,H,col){
+  const ctx=canvas.getContext('2d');
+  let px=W/2,lives=3,score=0,gt=0,et=0,enemies=[],orbs=[];
+  const WIN=1500;
+  document.getElementById('mg-lives-px').textContent='♥'.repeat(lives);
+
+  canvas.onmousemove=e=>{const r=canvas.getBoundingClientRect();px=Math.max(10,Math.min(W-30,e.clientX-r.left-10))};
+  canvas.ontouchmove=e=>{e.preventDefault();const r=canvas.getBoundingClientRect();px=Math.max(10,Math.min(W-30,e.touches[0].clientX-r.left-10))};
+
+  // companion hints
+  const hints=['Dodge left!','Watch out!','Move!','Collect the orbs!'];
+  let lastHint=0;
+
+  function loop(){
+    if(!mgActive)return;
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    gt++;
+    // progress
+    ctx.fillStyle='#111';ctx.fillRect(0,0,W,5);
+    ctx.fillStyle=col;ctx.fillRect(0,0,(gt/WIN)*W,5);
+    // hint
+    if(gt-lastHint>300){lastHint=gt;compSay(hints[Math.floor(Math.random()*hints.length)]);}
+    // spawn
+    et++;if(et>35){enemies.push({x:Math.random()*(W-16),y:-16,s:1.8+Math.random()*2.2});if(Math.random()>.55)orbs.push({x:Math.random()*(W-12),y:-12,s:1.5+Math.random()});et=0}
+    // orbs
+    orbs=orbs.filter(o=>{o.y+=o.s;ctx.fillStyle=col;ctx.beginPath();ctx.arc(o.x,o.y,6,0,Math.PI*2);ctx.fill();if(o.y>H)return false;if(Math.abs(o.x-px)<20&&o.y>H-50){score+=20;addEnergy(4);document.getElementById('mg-score-px').textContent='SCORE: '+score;return false}return true});
+    // enemies
+    enemies=enemies.filter(e=>{e.y+=e.s;ctx.fillStyle='#ff2020';ctx.fillRect(e.x,e.y,16,16);if(e.y>H)return false;if(Math.abs(e.x-px)<20&&e.y>H-50){lives--;document.getElementById('mg-lives-px').textContent='♥'.repeat(Math.max(0,lives));if(lives<=0){mgActive=false;doJumpscare();return false}return false}return true});
+    // player
+    ctx.fillStyle=col;ctx.fillRect(px,H-40,20,20);
+    ctx.fillStyle='#fff';ctx.fillRect(px+6,H-36,8,8);
+    if(gt>=WIN){mgActive=false;mgWinCb?.();return}
+    if(mgActive)requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+function runCatch(canvas,W,H,col){
+  const ctx=canvas.getContext('2d');
+  let bx=W/2-30,lives=3,score=0,gt=0,et=0,items=[];
+  const WIN=1500;
+  document.getElementById('mg-lives-px').textContent='♥'.repeat(lives);
+  canvas.onmousemove=e=>{const r=canvas.getBoundingClientRect();bx=Math.max(0,Math.min(W-60,e.clientX-r.left-30))};
+  canvas.ontouchmove=e=>{e.preventDefault();const r=canvas.getBoundingClientRect();bx=Math.max(0,Math.min(W-60,e.touches[0].clientX-r.left-30))};
+  const hints=['Catch the blue ones!','Dodge red!','Stay sharp!'];
+  let lh=0;
+  function loop(){
+    if(!mgActive)return;
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    gt++;ctx.fillStyle='#111';ctx.fillRect(0,0,W,5);ctx.fillStyle=col;ctx.fillRect(0,0,(gt/WIN)*W,5);
+    if(gt-lh>280){lh=gt;compSay(hints[Math.floor(Math.random()*hints.length)]);}
+    et++;if(et>45){const g=Math.random()>.35;items.push({x:Math.random()*(W-14),y:-14,s:1.8+Math.random()*2.5,g});et=0}
+    items=items.filter(it=>{it.y+=it.s;ctx.fillStyle=it.g?col:'#ff2020';ctx.fillRect(it.x,it.y,14,14);if(it.y>H){if(it.g){lives--;document.getElementById('mg-lives-px').textContent='♥'.repeat(Math.max(0,lives));if(lives<=0){mgActive=false;doJumpscare();return false}}return false}if(it.x<bx+60&&it.x+14>bx&&it.y+14>H-20&&it.y<H){if(it.g){score+=15;addEnergy(3);document.getElementById('mg-score-px').textContent='SCORE: '+score}else{lives--;document.getElementById('mg-lives-px').textContent='♥'.repeat(Math.max(0,lives));if(lives<=0){mgActive=false;doJumpscare();return false}}return false}return true});
+    ctx.fillStyle=col;ctx.fillRect(bx,H-20,60,12);
+    if(gt>=WIN){mgActive=false;mgWinCb?.();return}
+    if(mgActive)requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+function runSlash(canvas,W,H,col){
+  const ctx=canvas.getContext('2d');
+  let lives=3,score=0,gt=0,et=0,targets=[];
+  const WIN=1500;
+  document.getElementById('mg-lives-px').textContent='♥'.repeat(lives);
+  const spawn=()=>targets.push({x:20+Math.random()*(W-60),y:20+Math.random()*(H-80),r:22,life:100,max:100});
+  const hints=['Hit them!','Now!','Strike fast!','Don\'t miss!'];
+  let lh=0;
+  canvas.onclick=e=>{const r=canvas.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;targets=targets.filter(t=>{if(Math.hypot(mx-t.x,my-t.y)<t.r+10){score+=30;addEnergy(6);document.getElementById('mg-score-px').textContent='SCORE: '+score;return false}return true})};
+  canvas.ontouchstart=e=>{e.preventDefault();canvas.onclick({clientX:e.touches[0].clientX,clientY:e.touches[0].clientY})};
+  function loop(){
+    if(!mgActive)return;
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    gt++;ctx.fillStyle='#111';ctx.fillRect(0,0,W,5);ctx.fillStyle=col;ctx.fillRect(0,0,(gt/WIN)*W,5);
+    if(gt-lh>260){lh=gt;compSay(hints[Math.floor(Math.random()*hints.length)]);}
+    et++;if(et>55){spawn();et=0}
+    targets=targets.filter(t=>{t.life--;const p=t.life/t.max;ctx.strokeStyle=col;ctx.lineWidth=3;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.stroke();ctx.fillStyle=col+'22';ctx.fill();ctx.strokeStyle='#ff2020';ctx.lineWidth=4;ctx.beginPath();ctx.arc(t.x,t.y,t.r+4,-Math.PI/2,-Math.PI/2+(1-p)*Math.PI*2);ctx.stroke();ctx.fillStyle='#fff';ctx.font=`${t.r}px VT323`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('X',t.x,t.y);if(t.life<=0){lives--;document.getElementById('mg-lives-px').textContent='♥'.repeat(Math.max(0,lives));if(lives<=0){mgActive=false;doJumpscare();return false}return false}return true});
+    if(gt>=WIN){mgActive=false;mgWinCb?.();return}
+    if(mgActive)requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+function doJumpscare(){
+  const js=document.getElementById('jumpscare');
+  document.getElementById('js-txt').textContent='CURSE CONSUMED YOU';
+  js.classList.add('show');
+  if(navigator.vibrate)navigator.vibrate([200,80,200,80,400]);
+  setTimeout(()=>{js.classList.remove('show');mgLoseCb?.();},1600);
+}
+
+/* ══════════════════════════════════
+   CHAPTER COMPLETE CHECK
+══════════════════════════════════ */
+function checkChapterComplete(chIdx){
+  const ch=CHAPTERS[chIdx];
+  const allDone=ch.tasks.every(t=>S.tasks[t.id]);
+  if(allDone){
+    checkAch('ch'+(chIdx+1)+'_done');
+    if(chIdx+1<CHAPTERS.length) S.chapter=Math.max(S.chapter,chIdx+2);
+    save();
+    if(chIdx===2) showSecretUnlock();
+    else{
+      showToast('CHAPTER '+(chIdx+1)+' COMPLETE! NEW CHAPTER UNLOCKED!');
+      compSay(`${S.name}... we did it. The curtain is lifting.`);
+    }
+  }
+}
+
+/* ══════════════════════════════════
+   TASK COMPLETE
+══════════════════════════════════ */
+function completedTask(name,reward,chIdx){
+  addEnergy(reward);
+  showMissionPop(name,reward);
+  setTimeout(()=>{ backToHub(); },2600);
+}
+
+function showMissionPop(name,reward){
+  const p=document.getElementById('mission-pop');
+  p.innerHTML=`<div class="mission-box"><div class="mission-h">✦ MISSION ACCOMPLISHED ✦</div><div class="mission-s">[ ${name} ]</div><div class="mission-e">+${reward} CURSED ENERGY</div></div>`;
+  p.classList.add('show');
+  setTimeout(()=>p.classList.remove('show'),2500);
+}
+
+/* ══════════════════════════════════
+   AFFECTION
+══════════════════════════════════ */
+function addAffection(n){
+  S.affection=Math.min(S.affection+n,100); save();
+  const lv=Math.floor(S.affection/10);
+  document.getElementById('aff-fill').style.width=S.affection+'%';
+  document.getElementById('aff-level').textContent='LV.'+lv;
+  if(lv>=10) checkAch('aff_max');
+  if(S.affection>=100&&!S.ach['aff_max_shown']){
+    S.ach['aff_max_shown']=true;save();
+    setTimeout(showSecretUnlock,1000);
+  }
+}
+
+/* ══════════════════════════════════
+   SECRET UNLOCK
+══════════════════════════════════ */
+const SECRET_LETTERS={
+  gojo:`${S.name},\n\nI've been watching you this whole time.\nYou're the only one who could've made it this far.\nInfinity protects what I care about.\nAnd I care about you.\n\n— Satoru`,
+  toji:`${S.name}.\n\nI don't say things like this.\nBut you've earned it.\nDon't disappear on me.\n\n— Toji`,
+  sukuna:`${S.name}.\n\nYou belong to me.\nThis isn't a feeling.\nIt's a fact.\n\n— The King`,
+  maki:`${S.name},\n\nYou kept up.\nI didn't think you would.\nI'm glad you did.\n\n— Maki`,
+  yuki:`${S.name},\n\nAcross every possible universe,\nyou end up here.\nWith me.\nI've stopped questioning why.\n\n— Yuki`,
+  utahime:`${S.name},\n\nI wrote a song.\nIt's about someone who showed up\nwhen I needed them most.\nYou know who it is.\n\n— Utahime`,
+};
+
+function showSecretUnlock(){
+  const c=CHARS[S.comp];
+  const letter=SECRET_LETTERS[S.comp]?.replace(/\$\{S\.name\}/g,S.name)||'A secret message awaits...';
+  const el=document.getElementById('secret-unlock');
+  el.innerHTML=`
+    <div class="secret-box">
+      <div class="secret-title">⛧ BOND COMPLETE ⛧<br><span style="font-size:.6em;color:var(--acc)">${c.name} — SECRET LETTER</span></div>
+      <pre class="secret-letter" style="white-space:pre-wrap;font-family:VT323">${letter}</pre>
+    </div>
+    <button class="pxbtn primary" onclick="document.getElementById('secret-unlock').classList.remove('show')">▶ CLOSE</button>
+  `;
+  el.classList.add('show');
+  checkAch('aff_max');
+}
+
+/* ══════════════════════════════════
+   ENERGY
+══════════════════════════════════ */
+function addEnergy(n){
+  S.energy+=n; save(); updateAllUI();
+  if(S.energy>=500)checkAch('energy_500');
+  if(S.energy>=1000)checkAch('energy_1000');
+}
+
+function updateAllUI(){
+  document.getElementById('tb-energy').textContent='⚡ '+S.energy+' CE';
+  document.getElementById('bn-energy').textContent='⚡ '+S.energy;
+  document.getElementById('tb-chapter').textContent='CHAPTER '+S.chapter;
+  document.getElementById('aff-fill').style.width=S.affection+'%';
+  document.getElementById('aff-level').textContent='LV.'+Math.floor(S.affection/10);
+  document.getElementById('shop-energy-disp').textContent=S.energy;
+}
+
+/* ══════════════════════════════════
+   COMPANION WIDGET
+══════════════════════════════════ */
+function updateCompSprite(){
+  const c=CHARS[S.comp];
+  if(!c) return;
+  const sp=document.getElementById('comp-sprite');
+  sp.src=c.img;
+  sp.style.borderColor=c.color;
+}
+
+function compSay(msg){
+  const d=document.getElementById('comp-dialog');
+  d.textContent=msg;
+  d.classList.add('show');
+  clearTimeout(window._compTimer);
+  window._compTimer=setTimeout(()=>d.classList.remove('show'),4500);
+}
+
+function toggleCompDialog(){
+  const d=document.getElementById('comp-dialog');
+  if(d.classList.contains('show')) d.classList.remove('show');
+  else{ const c=CHARS[S.comp];if(c)compSay(c.idle(S.name)[Math.floor(Math.random()*3)]); }
+}
+
+let _idleTimer=null;
+function startIdleTimer(){
+  clearTimeout(_idleTimer);
+  _idleTimer=setTimeout(()=>{
+    const c=CHARS[S.comp];
+    if(c) compSay(c.idle(S.name)[Math.floor(Math.random()*3)]);
+    startIdleTimer();
+  },25000);
+}
+document.addEventListener('touchstart',resetIdle);
+document.addEventListener('click',resetIdle);
+function resetIdle(){clearTimeout(_idleTimer);startIdleTimer();}
+
+/* ══════════════════════════════════
+   ACHIEVEMENTS
+══════════════════════════════════ */
+function checkAch(id,condition=true){
+  if(!condition||S.ach[id]) return;
+  S.ach[id]=true; save();
+  const a=ACHS.find(x=>x.id===id);
+  if(a) showToast(a.icon+' ACHIEVEMENT: '+a.name);
+  addEnergy(100);
+}
+
+function showAch(){
+  const p=document.getElementById('achievements-panel');
+  const list=document.getElementById('ach-list');
+  list.innerHTML='';
+  ACHS.forEach(a=>{
+    const on=S.ach[a.id];
+    const d=document.createElement('div');
+    d.className='ach-item '+(on?'on':'off');
+    d.innerHTML=`<div class="ach-ico">${a.icon}</div><div class="ach-inf"><div class="ach-nm">${a.name}</div><div class="ach-ds">${a.desc}</div></div>${on?'<span style="color:var(--gold);font-family:Press Start 2P;font-size:.4rem">✓</span>':''}`;
+    list.appendChild(d);
+  });
+  p.classList.add('show');
+}
+
+/* ══════════════════════════════════
+   SHOP
+══════════════════════════════════ */
+function openShop(){
+  const list=document.getElementById('shop-list');
+  document.getElementById('shop-energy-disp').textContent=S.energy;
+  list.innerHTML='';
+  SHOP_ITEMS.forEach(it=>{
+    const bought=S.bought.includes(it.id);
+    const d=document.createElement('div');
+    d.className='shop-item '+(bought?'bought':'');
+    d.innerHTML=`<div><div class="shop-nm">${it.name}</div><div class="shop-ds">${it.desc}</div></div><div class="shop-price">${bought?'OWNED':it.price+' CE'}</div>`;
+    if(!bought) d.onclick=()=>buyItem(it);
+    list.appendChild(d);
+  });
+  document.getElementById('shop-panel').classList.add('show');
+}
+
+function buyItem(it){
+  if(S.energy<it.price){showToast('NOT ENOUGH CE!');return;}
+  S.energy-=it.price;
+  S.bought.push(it.id);
+  save(); updateAllUI();
+  it.effect?.();
+  showToast('PURCHASED: '+it.name);
+  openShop();
+}
+
+/* ══════════════════════════════════
+   OPEN CHAT (free mode)
+══════════════════════════════════ */
+function openChat(){
+  document.getElementById('act-title').textContent='CHITCHAT';
+  document.getElementById('act-body').innerHTML='';
+  showScreen('s-activity');
+  buildChatUI({id:'free_chat'},0);
+  // override: free chat doesn't trigger task completion
+  chatTaskRef=null;
+}
+
+/* ══════════════════════════════════
+   NAV / HELPERS
+══════════════════════════════════ */
+function showHub(){ showScreen('s-hub'); buildHub(); }
+function backToHub(){ showHub(); }
+function closeOverlays(){
+  document.getElementById('achievements-panel').classList.remove('show');
+  document.getElementById('shop-panel').classList.remove('show');
+  document.getElementById('secret-unlock').classList.remove('show');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(window._toastT);
+  window._toastT=setTimeout(()=>t.style.display='none',2500);
+}
+
+function startNoise(){
+  const c=document.createElement('canvas');
+  c.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:8998;opacity:.025';
+  c.width=200;c.height=200;document.body.appendChild(c);
+  const cx=c.getContext('2d');
+  function gen(){const d=cx.createImageData(200,200);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255|0;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}cx.putImageData(d,0,0);requestAnimationFrame(gen)}
+  gen();
+}
+
+/* ══════════════════════════════════
+   LOAD / INIT
+══════════════════════════════════ */
+window.addEventListener('load',()=>{
+  // if returning player
+  if(S.name&&S.gender&&S.comp){
+    applyCompTheme();buildHub();
+    showScreen('s-hub');
+    document.getElementById('botnav').classList.add('show');
+    document.getElementById('companion-widget').style.display='flex';
+    updateCompSprite();updateAllUI();
+    setTimeout(()=>compSay(`Welcome back, ${S.name}. I've been waiting.`),800);
+    startIdleTimer();
+  } else if(S.name&&S.gender){
+    document.getElementById('name-input').value=S.name;
+    buildCompScreen();showScreen('s-companion');
+  }
+  // apply bought items
+  S.bought.forEach(id=>{
+    const it=SHOP_ITEMS.find(x=>x.id===id);
+    it?.effect?.();
+  });
+});
+</script>
+</body>
+</html>
