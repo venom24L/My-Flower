@@ -10,6 +10,42 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
 <style>
+  #preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0d0d0d; /* الأسود الملكي */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* عشان يغطي كل حاجة */
+}
+
+.loader-content {
+    text-align: center;
+    color: #d4af37; /* الذهبي */
+    font-family: 'Serif', serif;
+}
+
+.flower-icon {
+    font-size: 50px;
+    animation: pulse 2s infinite;
+}
+
+#loader-text {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.5; }
+}
+
 :root {
   --black:  #0a080d;
   --deep:   #110d1a;
@@ -353,6 +389,12 @@ body::after{
 </style>
 </head>
 <body>
+  <div id="preloader">
+    <div class="loader-content">
+        <div class="flower-icon">⚜️</div> <p id="loader-text">Preparing your special chapter...</p>
+    </div>
+</div>
+
 
 <canvas id="petal-canvas"></canvas>
 
@@ -867,5 +909,27 @@ function burstPetals(){
   });
 })();
 </script>
+      <script>
+        window.addEventListener('load', function() {
+            const loaderText = document.getElementById('loader-text');
+            
+            // تغيير الكلام بتمهيد
+            setTimeout(() => { if(loaderText) loaderText.innerText = "Gathering petals..."; }, 1500);
+            setTimeout(() => { if(loaderText) loaderText.innerText = "Almost there, Flower."; }, 3000);
+
+            // إخفاء الـ Preloader باستخدام GSAP
+            setTimeout(() => {
+                gsap.to("#preloader", {
+                    duration: 1.5,
+                    opacity: 0,
+                    y: -100, // حركة لفوق خفيفة تدي شياكة
+                    onComplete: () => {
+                        document.getElementById('preloader').style.display = "none";
+                    },
+                    ease: "power4.inOut"
+                });
+            }, 4500); 
+        });
+    </script>
 </body>
 </html>
