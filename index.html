@@ -932,5 +932,46 @@ function burstPetals(){
         });
     </script>
     <script src="jquery.counter.js"></script>
+  <script>
+    (function() {
+        const checkUnlock = setInterval(() => {
+            const inputField = document.getElementById('code') || document.getElementById('passcode');
+            if (inputField) {
+                clearInterval(checkUnlock);
+                
+                inputField.oninput = (e) => {
+                    if(e.target.value === '48') {
+                        const hour = new Date().getHours();
+                        let greeting = "";
+
+                        // تحديد رسالة الوقت
+                        if (hour >= 5 && hour < 12) greeting = "Good morning, Flower. A new day, a new chapter...";
+                        else if (hour >= 12 && hour < 18) greeting = "Good afternoon. I hope your day is as beautiful as this moment...";
+                        else greeting = "Good evening. The world is quiet, making this moment even more special...";
+
+                        // دمج الرسالة في القسم السري
+                        const secretBox = document.getElementById('secret-content') || document.getElementById('secret-section');
+                        const lockBox = document.getElementById('lock-box') || document.getElementById('unlock-section');
+                        const msgBox = document.querySelector('.secret-quote') || document.querySelector('.secret-message');
+
+                        if (msgBox) {
+                            msgBox.innerHTML = `<span style="display:block; font-size:0.85rem; margin-bottom:8px; color:#d4af37; font-style:normal;">${greeting}</span>` + 
+                                               `'Even the chapters that make you shy, I love them because they are yours.'`;
+                        }
+
+                        // تنفيذ الأنيميشن
+                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.8 }, colors: ['#d4af37', '#1a0a1d'] });
+                        
+                        gsap.to(lockBox, { opacity: 0, duration: 0.5, onComplete: () => {
+                            lockBox.style.display = 'none';
+                            secretBox.style.display = 'block';
+                            gsap.from(secretBox, { opacity: 0, y: 30, duration: 1.2 });
+                        }});
+                    }
+                };
+            }
+        }, 100);
+    })();
+</script>
 </body>
 </html>
