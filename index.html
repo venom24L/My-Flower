@@ -750,50 +750,47 @@ gsap.fromTo('#secret-section',
 // ══════════════════════════════
 //  PASSWORD LOGIC
 // ══════════════════════════════
-const input    = document.getElementById('password-input');
-const btn      = document.getElementById('unlock-btn');
-const errMsg   = document.getElementById('pw-error');
-const SECRET   = '48';
+        // نظام كلمة السر الذكي - استبدل الجزء القديم بهذا الكود
+        const codeInput = document.getElementById('code') || document.getElementById('passcode');
+        const secretContent = document.getElementById('secret-content') || document.getElementById('secret-section');
+        const lockBox = document.getElementById('lock-box') || document.getElementById('unlock-section');
 
-function tryUnlock(){
-  const val = input.value.trim();
-  if(val === SECRET){
-    triggerReveal();
-  } else {
-    errMsg.style.opacity = '1';
-    gsap.fromTo(input,
-      { x:-10 },
-      { x:0, duration:0.5, ease:'elastic.out(1,0.3)',
-        keyframes:{ x:[-10, 10, -8, 8, -5, 5, 0] }
-      }
-    );
-    gsap.fromTo(input,
-      { borderColor:'rgba(192,96,96,0.8)' },
-      { borderColor:'rgba(201,168,76,0.4)', duration:1.5, delay:0.3 }
-    );
-    setTimeout(() => { errMsg.style.opacity = '0'; }, 2800);
-  }
-}
+        codeInput.oninput = (e) => {
+            if(e.target.value === '48') {
+                // تحديد الوقت
+                const hour = new Date().getHours();
+                let greeting = "";
 
-btn.addEventListener('click', tryUnlock);
-input.addEventListener('keydown', e => { if(e.key === 'Enter') tryUnlock(); });
+                if (hour >= 5 && hour < 12) {
+                    greeting = "Good morning, Flower. A new day, a new chapter... ";
+                } else if (hour >= 12 && hour < 18) {
+                    greeting = "Good afternoon. I hope your day is as beautiful as this moment... ";
+                } else {
+                    greeting = "Good evening. The world is quiet, making this moment even more special... ";
+                }
 
-function triggerReveal(){
-  btn.disabled = true;
-  input.disabled = true;
+                // دمج الرسالة الموقوتة مع رسالتك الأساسية
+                const messageElement = document.querySelector('.secret-quote') || document.querySelector('.secret-message');
+                messageElement.innerHTML = `<span style="display:block; font-size:0.9rem; margin-bottom:10px; opacity:0.8; color: #d4af37;">${greeting}</span>` + 
+                                           `'Even the chapters that make you shy, I love them because they are yours.'`;
 
-  gsap.to('#secret-section', {
-    opacity:0, y:-30, duration:0.9, ease:'power2.in',
-    onComplete:() => {
-      document.getElementById('secret-section').style.display = 'none';
-      showReveal();
-    }
-  });
-}
+                // الاحتفال (Confetti)
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 80, 
+                    origin: { y: 0.8 }, 
+                    colors: ['#d4af37', '#1a0a1d', '#ff007f'] 
+                });
 
-function showReveal(){
-  const rev = document.getElementById('secret-reveal');
-  rev.style.display = 'block';
+                // حركة الاختفاء والظهور
+                gsap.to(lockBox, { opacity: 0, duration: 0.5, onComplete: () => {
+                    lockBox.style.display = 'none';
+                    secretContent.style.display = 'block';
+                    gsap.from(secretContent, { opacity: 0, y: 50, duration: 1.5, ease: "power4.out" });
+                }});
+            }
+        };
+
 
   // Scroll to reveal smoothly
   setTimeout(() => {
