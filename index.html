@@ -449,6 +449,207 @@ body::after{
   border-color:var(--gold);
   box-shadow:0 0 20px rgba(201,168,76,0.3);
 }
+
+/* ══════════════════════════════
+   MOOD SELECTOR
+══════════════════════════════ */
+#mood-selector{
+  position:fixed;
+  bottom:32px;right:24px;
+  z-index:9999;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.mood-label{
+  font-family:'Cormorant Garamond',serif;
+  font-size:9px;letter-spacing:3px;
+  color:rgba(201,168,76,0.4);
+  text-transform:uppercase;
+  user-select:none;
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+  margin-bottom:4px;
+}
+.mood-dots{display:flex;flex-direction:column;gap:10px;align-items:center;}
+.mood-dot{
+  width:13px;height:13px;border-radius:50%;
+  cursor:pointer;border:1.5px solid transparent;
+  transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+  position:relative;
+}
+.mood-dot::after{
+  content:attr(data-label);
+  position:absolute;
+  right:calc(100% + 10px);
+  top:50%;transform:translateY(-50%);
+  font-family:'Cormorant Garamond',serif;
+  font-size:10px;letter-spacing:2px;
+  color:var(--gold);opacity:0;
+  white-space:nowrap;pointer-events:none;
+  transition:opacity .25s ease;
+  text-transform:uppercase;
+}
+.mood-dot:hover::after{opacity:1;}
+.mood-dot:hover{transform:scale(1.35);}
+.mood-dot.active{
+  border-color:var(--gold);
+  box-shadow:0 0 10px rgba(201,168,76,0.5);
+  transform:scale(1.2);
+}
+/* Dot colors */
+.mood-dot[data-mood="midnight"]{ background:#3b1f4a; }
+.mood-dot[data-mood="rose"]    { background:#7a2040; }
+.mood-dot[data-mood="ivory"]   { background:#c8b89a; }
+
+/* ── MOOD: ROSE ── */
+body.mood-rose{
+  --black:  #150810;
+  --deep:   #1e0a14;
+  --mauve:  #5a1530;
+  --mauve2: #8b2550;
+  --gold:   #c47c8a;
+  --gold2:  #e8aab8;
+  --gold3:  #f5d8de;
+  --cream:  #fff0f3;
+  --text:   #d4a0a8;
+}
+body.mood-rose .hero-bg{
+  background:radial-gradient(ellipse at 50% 40%,#4a0a25 0%,#1e0a14 50%,#150810 100%);
+}
+body.mood-rose #preloader{ background:#150810; }
+
+/* ── MOOD: IVORY ── */
+body.mood-ivory{
+  --black:  #f0ebe0;
+  --deep:   #e8e0d0;
+  --mauve:  #c8b89a;
+  --mauve2: #8b6a4a;
+  --gold:   #8b6a2a;
+  --gold2:  #6b4a1a;
+  --gold3:  #3a2a0a;
+  --cream:  #2a1a0a;
+  --text:   #4a3a2a;
+}
+body.mood-ivory{
+  background:var(--black);
+  color:var(--text);
+}
+body.mood-ivory .hero-bg{
+  background:radial-gradient(ellipse at 50% 40%,#d8c8a8 0%,#e8e0d0 50%,#f0ebe0 100%);
+}
+body.mood-ivory .bubble{ background:#2a1a0a; color:#f0ebe0; }
+body.mood-ivory .bubble::after{ border-color:#2a1a0a transparent transparent transparent; }
+body.mood-ivory #preloader{ background:#f0ebe0; }
+body.mood-ivory .loader-content{ color:#8b6a2a; }
+body.mood-ivory body::after{ opacity:.15; }
+
+/* ══════════════════════════════
+   ENVELOPE ANIMATION
+══════════════════════════════ */
+
+/* Hide old lock-box interior during envelope — keep #secret-section wrapper */
+#envelope-stage{
+  display:none;
+  max-width:460px;
+  margin:0 auto;
+  perspective:900px;
+  position:relative;
+}
+#envelope-stage.visible{ display:block; }
+
+.envelope{
+  width:100%;
+  position:relative;
+  transform-style:preserve-3d;
+}
+
+/* ── Envelope body (bottom part) ── */
+.env-body{
+  width:100%;
+  padding-top:62%; /* 460×285 golden ratio ish */
+  background:linear-gradient(160deg,#1a0f2e 0%,#0e0918 100%);
+  border:1px solid rgba(201,168,76,0.5);
+  border-radius:2px 2px 6px 6px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 20px 80px rgba(0,0,0,0.7), 0 0 40px rgba(201,168,76,0.08);
+}
+
+/* decorative diagonal folds inside body */
+.env-body::before{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    linear-gradient(135deg, transparent 49%, rgba(201,168,76,0.07) 49%, rgba(201,168,76,0.07) 51%, transparent 51%),
+    linear-gradient(225deg, transparent 49%, rgba(201,168,76,0.05) 49%, rgba(201,168,76,0.05) 51%, transparent 51%);
+  pointer-events:none;
+}
+
+/* gold wax seal */
+.env-seal{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:54px;height:54px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#e8d08a,#c9a84c 40%,#9a7a30 100%);
+  border:1px solid rgba(201,168,76,0.8);
+  box-shadow:0 0 20px rgba(201,168,76,0.4),inset 0 0 10px rgba(0,0,0,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  z-index:4;
+  transition:opacity .4s ease;
+}
+
+/* ── Envelope flap (top, folds down from top edge) ── */
+.env-flap{
+  width:100%;
+  position:absolute;
+  top:0;left:0;
+  transform-origin:top center;
+  transform-style:preserve-3d;
+  z-index:5;
+  /* polygon that looks like a pointed envelope flap */
+  clip-path:polygon(0 0,100% 0,50% 68%);
+  background:linear-gradient(180deg,#221240 0%,#160c2c 100%);
+  border-left:1px solid rgba(201,168,76,0.5);
+  border-right:1px solid rgba(201,168,76,0.5);
+  border-top:1px solid rgba(201,168,76,0.5);
+}
+/* flap height matches 68% of body padding-top (62% * 0.68 ≈ 42%) */
+.env-flap{ padding-top:42%; }
+
+/* ── Letter that rises up ── */
+.env-letter{
+  position:absolute;
+  bottom:0;left:50%;
+  transform:translateX(-50%) translateY(0);
+  width:82%;
+  background:linear-gradient(160deg,#fdf6e3 0%,#f5ead0 100%);
+  border:1px solid rgba(201,168,76,0.4);
+  border-radius:2px;
+  padding:28px 24px 22px;
+  text-align:center;
+  box-shadow:0 -4px 30px rgba(0,0,0,0.5);
+  z-index:3;
+  opacity:0;
+  pointer-events:none;
+}
+.env-letter .letter-ornament{
+  font-size:18px;color:var(--mauve2);
+  letter-spacing:8px;margin-bottom:10px;display:block;
+  opacity:.7;
+}
+.env-letter .letter-text{
+  font-family:'Pinyon Script',cursive;
+  font-size:clamp(17px,3vw,22px);
+  color:#3a2010;
+  line-height:1.7;
+}
+
+/* ── Env outer container for 3D tilt ── */
+#envelope-stage .envelope-wrapper{
+  transform-style:preserve-3d;
+}
 </style>
 </head>
 <body>
@@ -471,6 +672,16 @@ body::after{
     <div class="lang-toggle-thumb"></div>
   </div>
   <span class="lang-label" id="lbl-fa">FA</span>
+</div>
+
+<!-- MOOD SELECTOR -->
+<div id="mood-selector" aria-label="Mood selector">
+  <span class="mood-label">Mood</span>
+  <div class="mood-dots">
+    <div class="mood-dot active" data-mood="midnight" data-label="Midnight" title="Midnight"></div>
+    <div class="mood-dot"        data-mood="rose"     data-label="Rose"     title="Rose"></div>
+    <div class="mood-dot"        data-mood="ivory"    data-label="Ivory"    title="Ivory"></div>
+  </div>
 </div>
 
 <!-- HERO -->
@@ -631,6 +842,27 @@ body::after{
       <div id="pw-error"
            data-en="That is not the right memory."
            data-fa="این خاطره درست نیست.">That is not the right memory.</div>
+    </div>
+
+    <!-- ENVELOPE STAGE — shown after correct password -->
+    <div id="envelope-stage">
+      <div class="envelope-wrapper">
+        <div class="envelope" id="the-envelope">
+          <!-- Flap -->
+          <div class="env-flap" id="env-flap"></div>
+          <!-- Body -->
+          <div class="env-body" id="env-body">
+            <div class="env-seal" id="env-seal">✦</div>
+            <!-- Letter inside -->
+            <div class="env-letter" id="env-letter">
+              <span class="letter-ornament">✦ ✦ ✦</span>
+              <p class="letter-text"
+                 data-en="Turn the page,<br>your story awaits…"
+                 data-fa="صفحه را برگردان،<br>داستانت منتظر است…">Turn the page,<br>your story awaits…</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -893,13 +1125,101 @@ function triggerReveal(){
   btn.disabled = true;
   input.disabled = true;
 
-  gsap.to('#secret-section', {
-    opacity:0, y:-30, duration:0.9, ease:'power2.in',
-    onComplete:() => {
-      document.getElementById('secret-section').style.display = 'none';
-      showReveal();
+  // ── Phase 1: fade out the lock-box form ──
+  const lockBox = document.querySelector('.lock-box');
+  gsap.to(lockBox, {
+    opacity:0, y:-24, duration:0.7, ease:'power2.in',
+    onComplete: () => {
+      lockBox.style.display = 'none';
+      startEnvelopeAnimation();
     }
   });
+}
+
+// ══════════════════════════════
+//  ENVELOPE ANIMATION SEQUENCE
+// ══════════════════════════════
+function startEnvelopeAnimation(){
+  const stage  = document.getElementById('envelope-stage');
+  const flap   = document.getElementById('env-flap');
+  const seal   = document.getElementById('env-seal');
+  const letter = document.getElementById('env-letter');
+  const body   = document.getElementById('env-body');
+
+  // Show stage
+  stage.classList.add('visible');
+
+  // Apply current lang to letter text immediately
+  const letterTxt = letter.querySelector('[data-en]');
+  if(letterTxt){
+    letterTxt.innerHTML = letterTxt.getAttribute(window._siteLang === 'fa' ? 'data-fa' : 'data-en');
+  }
+
+  const tl = gsap.timeline({
+    onComplete: () => {
+      // After envelope fully plays → launch final reveal
+      setTimeout(() => {
+        gsap.to(stage, {
+          opacity:0, y:-40, duration:0.8, ease:'power2.in',
+          onComplete: () => {
+            document.getElementById('secret-section').style.display = 'none';
+            showReveal();
+          }
+        });
+      }, 900);
+    }
+  });
+
+  // ── 0.0s  envelope fades in ──
+  tl.fromTo(stage,
+    { opacity:0, scale:0.88, y:30 },
+    { opacity:1, scale:1,    y:0, duration:1.0, ease:'power3.out' }
+  );
+
+  // ── 0.6s  gentle entrance tilt (3D) ──
+  tl.fromTo('#the-envelope',
+    { rotationY:-8, rotationX:4 },
+    { rotationY:0,  rotationX:0, duration:1.1, ease:'power2.out' },
+    0.3
+  );
+
+  // ── 1.2s  seal pulses then fades ──
+  tl.to(seal, {
+    scale:1.18,
+    boxShadow:'0 0 40px rgba(201,168,76,0.8)',
+    duration:0.4, ease:'power2.out'
+  }, 1.0);
+  tl.to(seal, {
+    scale:0, opacity:0, duration:0.4, ease:'back.in(1.7)'
+  }, 1.5);
+
+  // ── 1.9s  flap rotates open (rotationX: 0 → -185deg) ──
+  tl.to(flap, {
+    rotationX: -185,
+    duration: 1.3,
+    ease: 'power2.inOut',
+    transformOrigin: 'top center',
+    transformStyle: 'preserve-3d'
+  }, 1.7);
+
+  // ── 2.4s  letter rises up from envelope body ──
+  tl.to(letter, {
+    opacity:1,
+    y: '-68%',       // rises above envelope opening
+    duration: 1.2,
+    ease: 'power3.out',
+    pointerEvents:'none'
+  }, 2.4);
+
+  // ── 3.1s  subtle glow on letter ──
+  tl.fromTo(letter,
+    { boxShadow:'0 0 0px rgba(201,168,76,0)' },
+    { boxShadow:'0 0 40px rgba(201,168,76,0.25)', duration:0.8, ease:'power2.out' },
+    3.0
+  );
+
+  // ── petal burst at peak moment ──
+  tl.call(() => burstPetals(), null, 2.6);
 }
 
 function showReveal(){
@@ -965,6 +1285,101 @@ function typeMessage(){
   }
   type();
 }
+
+// ══════════════════════════════
+//  MOOD SELECTOR SYSTEM
+// ══════════════════════════════
+(function(){
+
+  // ── Palette definitions (CSS variable values per mood) ──
+  const PALETTES = {
+    midnight:{
+      '--black':'#0a080d','--deep':'#110d1a','--mauve':'#3b1f4a','--mauve2':'#5c2e72',
+      '--gold':'#c9a84c','--gold2':'#e8d08a','--gold3':'#f5e9c0','--cream':'#fdf6e3','--text':'#d4b896'
+    },
+    rose:{
+      '--black':'#150810','--deep':'#1e0a14','--mauve':'#5a1530','--mauve2':'#8b2550',
+      '--gold':'#c47c8a','--gold2':'#e8aab8','--gold3':'#f5d8de','--cream':'#fff0f3','--text':'#d4a0a8'
+    },
+    ivory:{
+      '--black':'#f0ebe0','--deep':'#e8e0d0','--mauve':'#c8b89a','--mauve2':'#8b6a4a',
+      '--gold':'#8b6a2a','--gold2':'#6b4a1a','--gold3':'#3a2a0a','--cream':'#2a1a0a','--text':'#4a3a2a'
+    }
+  };
+
+  // hero-bg gradients per mood
+  const HERO_GRADS = {
+    midnight:'radial-gradient(ellipse at 50% 40%,#2a0d3a 0%,#110d1a 50%,#0a080d 100%)',
+    rose:    'radial-gradient(ellipse at 50% 40%,#4a0a25 0%,#1e0a14 50%,#150810 100%)',
+    ivory:   'radial-gradient(ellipse at 50% 40%,#d8c8a8 0%,#e8e0d0 50%,#f0ebe0 100%)'
+  };
+
+  let currentMood = 'midnight';
+
+  function applyMood(mood, animate){
+    const root    = document.documentElement;
+    const palette = PALETTES[mood];
+    const heroBg  = document.querySelector('.hero-bg');
+
+    // Update body class for structural overrides (bubble bg, etc.)
+    document.body.classList.remove('mood-midnight','mood-rose','mood-ivory');
+    document.body.classList.add('mood-' + mood);
+
+    if(!animate){
+      // Instant — set vars directly
+      Object.entries(palette).forEach(([k,v]) => root.style.setProperty(k, v));
+      if(heroBg) heroBg.style.background = HERO_GRADS[mood];
+      return;
+    }
+
+    // Animated — use GSAP to tween CSS vars via a proxy object
+    const proxy = {};
+    const cur   = PALETTES[currentMood];
+    Object.keys(palette).forEach(k => { proxy[k] = cur[k] || palette[k]; });
+
+    // We can't tween hex strings directly, so we cross-fade via opacity trick:
+    // Create a temporary overlay element that transitions
+    const overlay = document.createElement('div');
+    overlay.style.cssText =
+      'position:fixed;inset:0;z-index:9990;pointer-events:none;opacity:0;' +
+      'background:' + palette['--black'] + ';';
+    document.body.appendChild(overlay);
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        // Apply all CSS vars at peak opacity
+        Object.entries(palette).forEach(([k,v]) => root.style.setProperty(k, v));
+        if(heroBg) heroBg.style.background = HERO_GRADS[mood];
+        // Fade overlay back out
+        gsap.to(overlay, {
+          opacity:0, duration:0.5, ease:'power2.out',
+          onComplete:() => overlay.remove()
+        });
+      }
+    });
+    tl.to(overlay, { opacity:0.7, duration:0.4, ease:'power2.inOut' })
+      .to(overlay, { opacity:0.0, duration:0.0 }); // pause handled by onComplete
+  }
+
+  // ── Wire up dots ──
+  document.querySelectorAll('.mood-dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      const mood = dot.dataset.mood;
+      if(mood === currentMood) return;
+
+      // Update active state
+      document.querySelectorAll('.mood-dot').forEach(d => d.classList.remove('active'));
+      dot.classList.add('active');
+
+      applyMood(mood, true);
+      currentMood = mood;
+    });
+  });
+
+  // Apply default on load
+  applyMood('midnight', false);
+
+})();
 
 // ══════════════════════════════
 //  LANGUAGE SWITCHER SYSTEM
@@ -1128,4 +1543,4 @@ function burstPetals(){
     </script>
     <script src="jquery.counter.js"></script>
 </body>
-</html>
+  </html>
