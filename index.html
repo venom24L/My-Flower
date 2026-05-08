@@ -543,6 +543,90 @@ body.mood-ivory .loader-content{ color:#8b6a2a; }
 body.mood-ivory body::after{ opacity:.15; }
 
 /* ══════════════════════════════
+   WITHERED FLOWER CHAPTER
+══════════════════════════════ */
+#withered-flower-section {
+  max-width: 860px;
+  margin: 0 auto 120px;
+  padding: 0 24px;
+}
+
+.wf-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.wf-img-wrapper {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(201,168,76,.2);
+  box-shadow: 0 0 80px rgba(59,31,74,.5), inset 0 0 30px rgba(0,0,0,.5);
+  opacity: 0;
+}
+.wf-img-wrapper::before,
+.wf-img-wrapper::after {
+  content: '';
+  position: absolute;
+  width: 28px; height: 28px;
+  border-color: var(--gold); border-style: solid;
+  z-index: 3; pointer-events: none;
+}
+.wf-img-wrapper::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+.wf-img-wrapper::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+.wf-img-wrapper img {
+  width: 100%; display: block; object-fit: cover;
+  filter: sepia(35%) contrast(1.04) brightness(.90);
+  transition: filter 1.2s ease;
+}
+.wf-img-wrapper:hover img {
+  filter: sepia(15%) contrast(1.07) brightness(.96);
+}
+
+.wf-text-block {
+  opacity: 0;
+}
+
+.wf-text-block p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(17px, 2.2vw, 22px);
+  line-height: 2;
+  color: var(--text);
+  text-align: center;
+  position: relative;
+  padding: 32px 24px;
+  border: 1px solid rgba(201,168,76,.15);
+  background: linear-gradient(135deg, rgba(59,31,74,.12), transparent);
+}
+
+.wf-text-block p::before {
+  content: '\201C';
+  position: absolute;
+  top: 6px; left: 14px;
+  font-size: 72px;
+  color: var(--gold); opacity: .18;
+  font-family: serif; line-height: 1;
+}
+
+.wf-text-block .wf-highlight {
+  color: var(--gold2);
+  font-style: normal;
+}
+
+@media (max-width: 640px) {
+  .wf-container {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  #withered-flower-section {
+    margin-bottom: 80px;
+  }
+}
+
+/* ══════════════════════════════
    ENVELOPE ANIMATION
 ══════════════════════════════ */
 
@@ -824,6 +908,26 @@ body.mood-ivory body::after{ opacity:.15; }
           data-fa="— اشک بر گل پژمرده، جلد ۳">— Tears on a Withered Flower, Vol. 3</cite>
   </blockquote>
 
+  <!-- Chapter — Withered Flower -->
+  <div class="chapter-divider cd-wf"><span
+    data-en="Chapter — Withered Flower"
+    data-fa="فصل — گل پژمرده">Chapter — Withered Flower</span></div>
+
+  <section id="withered-flower-section">
+    <div class="wf-container">
+      <div class="wf-img-wrapper">
+        <img src="https://i.postimg.cc/jjGF3RBB/fdafb26af381f5c096463a954a050282.jpg"
+             loading="lazy" alt="Withered Flower">
+      </div>
+      <div class="wf-text-block">
+        <p data-en='In a world where everything seems to <span class="wf-highlight">wither away</span>,<br>you remain the only place where I truly <span class="wf-highlight">bloom</span>.'
+           data-fa='در دنیایی که همه چیز <span class="wf-highlight">پژمرده</span> می‌شود،<br>تو تنها جایی هستی که من واقعاً <span class="wf-highlight">شکوفا</span> می‌شوم.'>In a world where everything seems to <span class="wf-highlight">wither away</span>,<br>you remain the only place where I truly <span class="wf-highlight">bloom</span>.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="ornament">✦ ✦ ✦</div>
+
   <!-- PASSWORD -->
   <div class="chapter-divider cd-4"><span
     data-en="The Final Chapter — Locked"
@@ -1084,6 +1188,30 @@ document.querySelectorAll('.quote-block').forEach(el => {
     }
   );
 });
+
+// Withered Flower chapter divider
+gsap.fromTo('.cd-wf',
+  { opacity:0, y:20 },
+  { opacity:1, y:0, duration:1, ease:'power2.out',
+    scrollTrigger:{ trigger:'.cd-wf', start:'top 82%', once:true }
+  }
+);
+
+// Withered Flower — image fade in
+gsap.fromTo('.wf-img-wrapper',
+  { opacity:0, scale:0.96 },
+  { opacity:1, scale:1, duration:1.5, ease:'power3.out',
+    scrollTrigger:{ trigger:'#withered-flower-section', start:'top 75%', once:true }
+  }
+);
+
+// Withered Flower — text fade in (delayed after image)
+gsap.fromTo('.wf-text-block',
+  { opacity:0, y:24 },
+  { opacity:1, y:0, duration:1.2, ease:'power2.out', delay:0.8,
+    scrollTrigger:{ trigger:'#withered-flower-section', start:'top 75%', once:true }
+  }
+);
 
 // Password section
 gsap.fromTo('#secret-section',
@@ -1546,4 +1674,4 @@ function burstPetals(){
     </script>
     <script src="jquery.counter.js"></script>
 </body>
-      </html>
+  </html>
