@@ -867,6 +867,14 @@ body::after{
 .gallery-item:hover img {
   filter: brightness(1.05) saturate(1.05);
 }
+.gallery-item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-top: 1px solid rgba(201,168,76,0.08);
+  padding: 8px 8px 10px;
+}
 .gallery-item-name {
   font-family: 'Cormorant Garamond', serif;
   font-size: 11px;
@@ -874,11 +882,39 @@ body::after{
   color: rgba(212,175,55,0.6);
   text-transform: uppercase;
   text-align: center;
-  padding: 10px 8px 12px;
-  border-top: 1px solid rgba(201,168,76,0.08);
+  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.gallery-item-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid rgba(180,80,80,0.25);
+  border-radius: 3px;
+  cursor: pointer;
+  color: rgba(200,100,100,0.5);
+  padding: 0;
+  transition: all 0.25s ease;
+  opacity: 0;
+}
+.gallery-item:hover .gallery-item-delete {
+  opacity: 1;
+}
+.gallery-item-delete:hover {
+  background: rgba(200,80,80,0.12);
+  border-color: rgba(200,80,80,0.6);
+  color: rgba(220,100,100,0.9);
+  transform: scale(1.1);
+}
+.gallery-item-delete.is-deleting {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 /* Loading dots */
@@ -2639,115 +2675,170 @@ function burstPetals(){
 }
 
 // ══════════════════════════════
-//  ART SANCTUARY — Isolated IIFE
+//  ART SANCTUARY — v2 (Optimized)
 // ══════════════════════════════
 (function(){
   'use strict';
 
-  /* ── Config ── */
-  const SUPABASE_URL = 'https://wwjxqkarjfigbfftplff.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_pmKdhacZgMv6LpLcU3t1Rw_TzHS0-Ua';
-  const TABLE        = 'gallery';
+  /* ─────────────────────────────
+     CONFIG
+  ───────────────────────────── */
+  const SUPABASE_URL  = 'https://wwjxqkarjfigbfftplff.supabase.co';
+  const SUPABASE_KEY  = 'sb_publishable_pmKdhacZgMv6LpLcU3t1Rw_TzHS0-Ua';
+  const TABLE         = 'gallery';
+  const GALLERY_LIMIT = 12;           // fetch only latest 12
+  const IMG_QUALITY   = 0.6;          // JPEG compression quality
+  const LS_KEY        = 'sg_my_ids';  // localStorage key for owned IDs
+  const TOAST_DURATION = 3800;
 
-  /* ── State ── */
-  let tool      = 'pen';
-  let painting  = false;
-  let brushSize = 3;
+  /* ─────────────────────────────
+     STATE
+  ───────────────────────────── */
+  let tool       = 'pen';
+  let painting   = false;
+  let brushSize  = 3;
   let brushColor = '#D4AF37';
   let lastX = 0, lastY = 0;
-  let hasDrawn  = false;
+  let hasDrawn   = false;
+  let toastTimer = null;
 
-  /* ── DOM refs ── */
-  const section      = document.getElementById('art-sanctuary');
-  const canvasEl     = document.getElementById('sg-canvas');
-  const ctx          = canvasEl.getContext('2d');
-  const hint         = document.getElementById('sg-canvas-hint');
-  const brushSlider  = document.getElementById('sg-brush-size');
-  const brushVal     = document.getElementById('sg-brush-val');
-  const nameInput    = document.getElementById('sg-artist-name');
-  const saveBtn      = document.getElementById('sg-save-btn');
-  const dlBtn        = document.getElementById('sg-download-btn');
-  const galleryGrid  = document.getElementById('sg-gallery-grid');
-  const galleryLoad  = document.getElementById('sg-gallery-loading');
-  const toastEl      = document.getElementById('sg-toast');
+  /* ─────────────────────────────
+     DOM REFS
+  ───────────────────────────── */
+  const canvasEl    = document.getElementById('sg-canvas');
+  const ctx         = canvasEl.getContext('2d');
+  const hint        = document.getElementById('sg-canvas-hint');
+  const brushSlider = document.getElementById('sg-brush-size');
+  const brushVal    = document.getElementById('sg-brush-val');
+  const nameInput   = document.getElementById('sg-artist-name');
+  const saveBtn     = document.getElementById('sg-save-btn');
+  const dlBtn       = document.getElementById('sg-download-btn');
+  const galleryGrid = document.getElementById('sg-gallery-grid');
+  const toastEl     = document.getElementById('sg-toast');
 
-  /* ── Canvas resize ── */
+  /* ─────────────────────────────
+     LOCAL STORAGE — OWNED IDs
+  ───────────────────────────── */
+  function getMyIds(){
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+    catch(e){ return []; }
+  }
+  function saveMyId(id){
+    try {
+      const ids = getMyIds();
+      ids.unshift(String(id));
+      localStorage.setItem(LS_KEY, JSON.stringify(ids.slice(0, 50))); // cap at 50
+    } catch(e){}
+  }
+  function removeMyId(id){
+    try {
+      const ids = getMyIds().filter(function(i){ return i !== String(id); });
+      localStorage.setItem(LS_KEY, JSON.stringify(ids));
+    } catch(e){}
+  }
+  function isMine(id){ return getMyIds().indexOf(String(id)) !== -1; }
+
+  /* ─────────────────────────────
+     SUPABASE HELPER
+  ───────────────────────────── */
+  function sbFetch(path, method, body){
+    const opts = {
+      method: method || 'GET',
+      headers: {
+        'apikey':        SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type':  'application/json'
+      }
+    };
+    if(method === 'POST')  opts.headers['Prefer'] = 'return=representation';
+    if(method === 'DELETE') opts.headers['Prefer'] = 'return=minimal';
+    if(body) opts.body = JSON.stringify(body);
+    return fetch(SUPABASE_URL + '/rest/v1/' + path, opts);
+  }
+
+  /* ─────────────────────────────
+     TOAST
+  ───────────────────────────── */
+  function showToast(msg, isError){
+    clearTimeout(toastTimer);
+    toastEl.textContent = msg;
+    toastEl.className   = 'sg-toast' + (isError ? ' sg-toast--error' : '');
+    void toastEl.offsetWidth; // reflow
+    toastEl.classList.add('sg-toast--visible');
+    toastTimer = setTimeout(function(){
+      toastEl.classList.remove('sg-toast--visible');
+    }, TOAST_DURATION);
+  }
+
+  /* ─────────────────────────────
+     CANVAS — RESIZE
+  ───────────────────────────── */
   function resizeCanvas(){
     const frame = canvasEl.parentElement;
     const W = frame.clientWidth;
     const H = frame.clientHeight;
-    // Save current drawing
-    const imgData = ctx.getImageData(0, 0, canvasEl.width, canvasEl.height);
+    const img = ctx.getImageData(0, 0, canvasEl.width, canvasEl.height);
     canvasEl.width  = W;
     canvasEl.height = H;
-    // Restore (best-effort)
-    ctx.putImageData(imgData, 0, 0);
+    ctx.putImageData(img, 0, 0);
   }
 
-  /* ── Pointer helpers ── */
+  /* ─────────────────────────────
+     CANVAS — DRAWING
+  ───────────────────────────── */
   function getPos(e){
     const rect = canvasEl.getBoundingClientRect();
-    const scaleX = canvasEl.width  / rect.width;
-    const scaleY = canvasEl.height / rect.height;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const src  = e.touches ? e.touches[0] : e;
     return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top)  * scaleY
+      x: (src.clientX - rect.left) * (canvasEl.width  / rect.width),
+      y: (src.clientY - rect.top)  * (canvasEl.height / rect.height)
     };
   }
 
-  function startDraw(e){
-    e.preventDefault();
-    painting = true;
-    const pos = getPos(e);
-    lastX = pos.x;
-    lastY = pos.y;
-    // dot on click
-    ctx.beginPath();
-    ctx.arc(pos.x, pos.y, (tool === 'eraser' ? brushSize * 4 : brushSize) / 2, 0, Math.PI * 2);
-    ctx.fillStyle = tool === 'eraser' ? '#000000' : brushColor;
-    ctx.fill();
-    if(!hasDrawn){ hasDrawn = true; hint.classList.add('hidden'); }
-  }
-
-  function draw(e){
-    if(!painting) return;
-    e.preventDefault();
-    const pos = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = tool === 'eraser' ? '#000000' : brushColor;
-    ctx.lineWidth   = tool === 'eraser' ? brushSize * 4 : brushSize;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
-    ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
-    ctx.stroke();
-    lastX = pos.x;
-    lastY = pos.y;
-  }
-
-  function stopDraw(){
-    painting = false;
+  function applyStroke(pos, isStart){
+    const isEraser = tool === 'eraser';
+    ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+    if(isStart){
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, (isEraser ? brushSize * 4 : brushSize) / 2, 0, Math.PI * 2);
+      ctx.fillStyle = isEraser ? 'rgba(0,0,0,1)' : brushColor;
+      ctx.fill();
+      if(!hasDrawn){ hasDrawn = true; hint.classList.add('hidden'); }
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.strokeStyle = isEraser ? 'rgba(0,0,0,1)' : brushColor;
+      ctx.lineWidth   = isEraser ? brushSize * 4 : brushSize;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+      ctx.stroke();
+    }
     ctx.globalCompositeOperation = 'source-over';
+    lastX = pos.x;
+    lastY = pos.y;
   }
 
-  /* ── Tool buttons ── */
+  function startDraw(e){ e.preventDefault(); painting = true; applyStroke(getPos(e), true); }
+  function draw(e)     { if(!painting) return; e.preventDefault(); applyStroke(getPos(e), false); }
+  function stopDraw()  { painting = false; }
+
+  /* ─────────────────────────────
+     TOOL BUTTONS
+  ───────────────────────────── */
+  function setActiveTool(newTool, btnId, cursor){
+    tool = newTool;
+    document.querySelectorAll('.tool-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById(btnId).classList.add('active');
+    canvasEl.style.cursor = cursor;
+  }
+
   document.getElementById('sg-tool-pen').addEventListener('click', function(){
-    tool = 'pen';
-    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    canvasEl.style.cursor = 'crosshair';
+    setActiveTool('pen', 'sg-tool-pen', 'crosshair');
   });
-
   document.getElementById('sg-tool-eraser').addEventListener('click', function(){
-    tool = 'eraser';
-    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    canvasEl.style.cursor = 'cell';
+    setActiveTool('eraser', 'sg-tool-eraser', 'cell');
   });
-
   document.getElementById('sg-tool-clear').addEventListener('click', function(){
     ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
     hasDrawn = false;
@@ -2758,15 +2849,13 @@ function burstPetals(){
   document.querySelectorAll('.swatch').forEach(function(sw){
     sw.addEventListener('click', function(){
       brushColor = this.dataset.color;
-      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.swatch').forEach(function(s){ s.classList.remove('active'); });
       this.classList.add('active');
-      tool = 'pen';
-      document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('sg-tool-pen').classList.add('active');
+      setActiveTool('pen', 'sg-tool-pen', 'crosshair');
     });
   });
 
-  /* ── Brush size ── */
+  /* ── Brush slider ── */
   brushSlider.addEventListener('input', function(){
     brushSize = parseInt(this.value, 10);
     brushVal.textContent = brushSize;
@@ -2780,186 +2869,197 @@ function burstPetals(){
   canvasEl.addEventListener('touchstart', startDraw, { passive: false });
   canvasEl.addEventListener('touchmove',  draw,      { passive: false });
   canvasEl.addEventListener('touchend',   stopDraw);
-
   window.addEventListener('resize', resizeCanvas);
 
-  /* ── Toast ── */
-  let toastTimer;
-  function showToast(msg, isError){
-    clearTimeout(toastTimer);
-    toastEl.textContent = msg;
-    toastEl.className   = 'sg-toast' + (isError ? ' sg-toast--error' : '');
-    // Force reflow
-    void toastEl.offsetWidth;
-    toastEl.classList.add('sg-toast--visible');
-    toastTimer = setTimeout(function(){
-      toastEl.classList.remove('sg-toast--visible');
-    }, 3800);
-  }
+  /* ─────────────────────────────
+     SAVE — Compressed JPEG
+  ───────────────────────────── */
+  const SAVE_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
 
-  /* ── Supabase helpers ── */
-  function sbFetch(path, method, body){
-    return fetch(SUPABASE_URL + '/rest/v1/' + path, {
-      method: method || 'GET',
-      headers: {
-        'apikey':        SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type':  'application/json',
-        'Prefer':        method === 'POST' ? 'return=representation' : ''
-      },
-      body: body ? JSON.stringify(body) : undefined
-    });
-  }
-
-  /* ── Save to Supabase ── */
   saveBtn.addEventListener('click', async function(){
-    if(!hasDrawn){
-      showToast('Please draw something first.', true);
-      return;
-    }
-    const name = (nameInput.value.trim() || 'Anonymous');
-    const imageData = canvasEl.toDataURL('image/png');
+    if(!hasDrawn){ showToast('Please draw something first.', true); return; }
+
+    const name      = nameInput.value.trim() || 'Anonymous';
+    // Compress with JPEG at quality 0.6 — significantly smaller DataURL
+    const imageData = canvasEl.toDataURL('image/jpeg', IMG_QUALITY);
     const timestamp = new Date().toISOString();
 
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Saving…';
+    saveBtn.disabled  = true;
+    saveBtn.innerHTML = 'Saving…';
 
     try {
-      const res = await sbFetch(TABLE, 'POST', {
-        name:       name,
-        image_data: imageData,
-        created_at: timestamp
-      });
+      const res = await sbFetch(TABLE, 'POST', { name, image_data: imageData, created_at: timestamp });
+      if(!res.ok){ const j = await res.json().catch(function(){ return {}; }); throw new Error(j.message || 'Could not save.'); }
 
-      if(res.ok){
-        showToast('Your mark has been saved, ' + name + ' ✦');
-        // Reload gallery to include the new one
-        loadGallery();
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.message || 'Could not save.');
-      }
+      const rows = await res.json();
+      const newId = rows && rows[0] && rows[0].id;
+      if(newId) saveMyId(newId);
+
+      showToast('Your mark has been saved, ' + name + ' ✦');
+      loadGallery();
     } catch(err){
       showToast('Could not save: ' + err.message, true);
     } finally {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save to Gallery';
+      saveBtn.disabled  = false;
+      saveBtn.innerHTML = SAVE_SVG + ' Save to Gallery';
     }
   });
 
   /* ── Download ── */
   dlBtn.addEventListener('click', function(){
-    const link = document.createElement('a');
-    link.download = 'my-mark.png';
-    link.href = canvasEl.toDataURL('image/png');
-    link.click();
+    const a = document.createElement('a');
+    a.download = 'my-mark.jpg';
+    a.href = canvasEl.toDataURL('image/jpeg', IMG_QUALITY);
+    a.click();
   });
 
-  /* ── Build gallery item ── */
-  function buildGalleryItem(row, animate){
+  /* ─────────────────────────────
+     DELETE — owner only
+  ───────────────────────────── */
+  async function deleteItem(id, itemEl){
+    const delBtn = itemEl.querySelector('.gallery-item-delete');
+    if(delBtn) delBtn.classList.add('is-deleting');
+
+    try {
+      const res = await sbFetch(TABLE + '?id=eq.' + encodeURIComponent(id), 'DELETE');
+      if(!res.ok && res.status !== 204) throw new Error('Delete failed');
+      removeMyId(id);
+      // Animate out, then remove
+      if(typeof gsap !== 'undefined'){
+        gsap.to(itemEl, { opacity: 0, scale: 0.88, duration: 0.4, ease: 'power2.in',
+          onComplete: function(){ itemEl.remove(); }
+        });
+      } else {
+        itemEl.remove();
+      }
+      showToast('Mark removed ✦');
+    } catch(err){
+      if(delBtn) delBtn.classList.remove('is-deleting');
+      showToast('Could not remove: ' + err.message, true);
+    }
+  }
+
+  /* ─────────────────────────────
+     BUILD GALLERY ITEM
+  ───────────────────────────── */
+  const TRASH_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+
+  function buildGalleryItem(row){
     const item = document.createElement('div');
     item.className = 'gallery-item';
-    const img  = document.createElement('img');
-    img.src = row.image_data;
-    img.alt = (row.name || 'Anonymous') + '\'s mark';
-    img.loading = 'lazy';
-    const label = document.createElement('div');
-    label.className = 'gallery-item-name';
-    label.textContent = row.name || 'Anonymous';
+
+    // Image with lazy loading
+    const img = document.createElement('img');
+    img.src     = row.image_data;
+    img.alt     = (row.name || 'Anonymous') + '\'s mark';
+    img.loading = 'lazy'; // native lazy load
     item.appendChild(img);
-    item.appendChild(label);
+
+    // Footer: name + optional delete button
+    const footer = document.createElement('div');
+    footer.className = 'gallery-item-footer';
+
+    const label = document.createElement('div');
+    label.className   = 'gallery-item-name';
+    label.textContent = row.name || 'Anonymous';
+    footer.appendChild(label);
+
+    // Show delete only for rows the current user owns
+    if(row.id && isMine(row.id)){
+      const delBtn = document.createElement('button');
+      delBtn.className = 'gallery-item-delete';
+      delBtn.title     = 'Remove your mark';
+      delBtn.setAttribute('aria-label', 'Delete this mark');
+      delBtn.innerHTML = TRASH_SVG;
+      delBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        deleteItem(row.id, item);
+      });
+      footer.appendChild(delBtn);
+    }
+
+    item.appendChild(footer);
     return item;
   }
 
-  /* ── Load gallery ── */
-  async function loadGallery(){
-    // Show loading
-    galleryGrid.innerHTML = '';
-    const loadingEl = document.createElement('div');
-    loadingEl.className = 'gallery-loading';
-    loadingEl.id = 'sg-gallery-loading';
-    loadingEl.innerHTML = '<span class="gallery-loading-dot"></span><span class="gallery-loading-dot"></span><span class="gallery-loading-dot"></span>';
-    galleryGrid.appendChild(loadingEl);
+  /* ─────────────────────────────
+     LOAD GALLERY
+  ───────────────────────────── */
+  function showLoadingSpinner(){
+    galleryGrid.innerHTML =
+      '<div class="gallery-loading">' +
+        '<span class="gallery-loading-dot"></span>' +
+        '<span class="gallery-loading-dot"></span>' +
+        '<span class="gallery-loading-dot"></span>' +
+      '</div>';
+  }
 
+  async function loadGallery(){
+    showLoadingSpinner();
     try {
-      const res = await sbFetch(TABLE + '?select=name,image_data,created_at&order=created_at.desc&limit=60');
-      if(!res.ok) throw new Error('Failed to fetch gallery');
+      // Fetch only latest GALLERY_LIMIT rows — select id so we can match ownership
+      const res = await sbFetch(
+        TABLE + '?select=id,name,image_data,created_at&order=created_at.desc&limit=' + GALLERY_LIMIT
+      );
+      if(!res.ok) throw new Error('Fetch failed');
       const rows = await res.json();
 
       galleryGrid.innerHTML = '';
 
       if(!rows || rows.length === 0){
-        const empty = document.createElement('div');
-        empty.className = 'gallery-empty';
-        empty.textContent = 'Be the first to leave your mark…';
-        galleryGrid.appendChild(empty);
+        galleryGrid.innerHTML = '<div class="gallery-empty">Be the first to leave your mark…</div>';
         return;
       }
 
-      const items = rows.map(row => buildGalleryItem(row));
-      items.forEach(item => galleryGrid.appendChild(item));
+      const items = rows.map(function(row){ return buildGalleryItem(row); });
+      items.forEach(function(item){ galleryGrid.appendChild(item); });
 
-      // GSAP staggered reveal
+      // GSAP staggered entrance
       if(typeof gsap !== 'undefined'){
         gsap.fromTo(items,
           { opacity: 0, y: 22, scale: 0.94 },
-          { opacity: 1, y: 0,  scale: 1,
-            duration: 0.65,
-            ease: 'power2.out',
-            stagger: 0.07
-          }
+          { opacity: 1, y: 0,  scale: 1, duration: 0.65, ease: 'power2.out', stagger: 0.07 }
         );
       } else {
         items.forEach(function(it){ it.style.opacity = '1'; });
       }
-
     } catch(err){
       galleryGrid.innerHTML = '<div class="gallery-empty">Gallery could not be loaded.</div>';
     }
   }
 
-  /* ── GSAP Section Entrance ── */
+  /* ─────────────────────────────
+     GSAP SECTION ANIMATIONS
+     Deferred until window.load
+     so they don't compete with
+     the preloader animations.
+  ───────────────────────────── */
   function initAnimations(){
     if(typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
     gsap.registerPlugin(ScrollTrigger);
 
-    // Header fade in
     gsap.fromTo('.sanctuary-header',
       { opacity: 0, y: 30 },
       { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '#art-sanctuary',
-          start: 'top 78%',
-          once: true
-        }
+        scrollTrigger: { trigger: '#art-sanctuary', start: 'top 78%', once: true }
       }
     );
 
-    // Studio slide up
     gsap.fromTo('.sanctuary-studio',
       { opacity: 0, y: 40 },
       { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.15,
-        scrollTrigger: {
-          trigger: '#art-sanctuary',
-          start: 'top 72%',
-          once: true
-        }
+        scrollTrigger: { trigger: '#art-sanctuary', start: 'top 72%', once: true }
       }
     );
 
-    // Gallery header
     gsap.fromTo('.sanctuary-gallery-header',
       { opacity: 0 },
       { opacity: 1, duration: 0.9, ease: 'power2.out',
-        scrollTrigger: {
-          trigger: '.sanctuary-gallery-header',
-          start: 'top 85%',
-          once: true
-        }
+        scrollTrigger: { trigger: '.sanctuary-gallery-header', start: 'top 85%', once: true }
       }
     );
 
-    // Lazy-load gallery when section enters view
+    // Lazy-load gallery only when it scrolls into view
     ScrollTrigger.create({
       trigger: '.sanctuary-gallery-header',
       start: 'top 90%',
@@ -2968,20 +3068,19 @@ function burstPetals(){
     });
   }
 
-  /* ── Init ── */
-  function init(){
-    // Initial canvas resize
-    requestAnimationFrame(function(){
-      resizeCanvas();
-    });
+  /* ─────────────────────────────
+     INIT — wait for window.load
+     so GSAP page animations
+     finish before we register
+     ScrollTrigger entries.
+  ───────────────────────────── */
+  function boot(){
+    requestAnimationFrame(resizeCanvas);
     initAnimations();
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  // Always defer to window load — guarantees no conflict with preloader GSAP
+  window.addEventListener('load', boot);
 
 })();
 </script>
@@ -3008,4 +3107,4 @@ function burstPetals(){
 </script>
         <script src="jquery.counter.js"></script>
 </body>
-  </html>
+            </html>
